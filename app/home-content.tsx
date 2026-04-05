@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import type { ContactFormData } from '@/lib/types';
 
@@ -17,25 +17,74 @@ const organizationSchema = {
 };
 
 // ─── Background Depth Layers ─────────────────────────────────────────
-// Single grid + vignette. Particles handled by space.js canvas.
-// No stars, no glows, no overlays.
+// Deterministic particle canvas + grid + vignette.
+// Particles react to awake state and cursor position.
 
-function BackgroundLayers() {
+function BackgroundLayers({ awake, cursor }: { awake: boolean; cursor?: { x: number; y: number } }) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let w = window.innerWidth;
+    let h = window.innerHeight;
+    canvas.width = w;
+    canvas.height = h;
+
+    const resize = () => {
+      w = window.innerWidth;
+      h = window.innerHeight;
+      canvas.width = w;
+      canvas.height = h;
+    };
+    window.addEventListener('resize', resize);
+
+    const N = 60;
+    const particles = Array.from({ length: N }).map((_, i) => ({
+      x: (i * 97) % w,
+      y: (i * 73) % h,
+      vx: ((i * 13) % 7) / 1000,
+      vy: ((i * 11) % 7) / 1000,
+    }));
+
+    let raf = 0;
+    const loop = () => {
+      ctx.clearRect(0, 0, w, h);
+      for (let p of particles) {
+        const speed = awake ? 2 : 1;
+        p.x += p.vx * speed * 0.8;
+        p.y += p.vy * speed * 0.8;
+        if (p.x < 0) p.x = w; else if (p.x > w) p.x = 0;
+        if (p.y < 0) p.y = h; else if (p.y > h) p.y = 0;
+        if (cursor) {
+          const dx = cursor.x - p.x;
+          const dy = cursor.y - p.y;
+          const dist = Math.max(1, Math.hypot(dx, dy));
+          const pull = 0.04 / dist;
+          p.vx += dx * pull * 0.01;
+          p.vy += dy * pull * 0.01;
+        }
+        ctx.fillStyle = awake ? 'rgba(180, 200, 255, 0.9)' : 'rgba(180, 200, 255, 0.5)';
+        ctx.fillRect(p.x, p.y, 2, 2);
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    loop();
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', resize);
+    };
+  }, [awake, cursor?.x, cursor?.y]);
+
   return (
     <>
-      {/* Layer 1: Atmosphere grid */}
-      <div
-        className="korantis-atmosphere-grid"
-        aria-hidden="true"
-      />
-
-      {/* Layer 2: Vignette — edge darkening for depth */}
-      <div
-        className="korantis-vignette"
-        aria-hidden="true"
-      />
-
-      {/* Canvas particles (space.js) — auto-injected at z-index 1 */}
+      <canvas ref={canvasRef} aria-hidden="true" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 1, pointerEvents: 'none' }} />
+      <div className="korantis-atmosphere-grid" aria-hidden="true" />
+      <div className="korantis-vignette" aria-hidden="true" />
     </>
   );
 }
@@ -228,9 +277,7 @@ function Header({ menuOpen, onToggle }: HeaderProps) {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-canvas/80 backdrop-blur-md border-b border-border/50" role="banner">
       <div className="container flex items-center justify-between h-14">
-        <a href="/" className="korantis-nav-logo" aria-label="Korantis home">
-          <img src="/korantisicon.svg" alt="Korantis" className="w-21 h-21" />
-        </a>
+
 
         <nav className="hidden md:flex items-center gap-10" aria-label="Main navigation">
           <a href="#layers" className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">
@@ -272,9 +319,20 @@ function Header({ menuOpen, onToggle }: HeaderProps) {
 
 // ─── Hero ─────────────────────────────────────────────────────────────
 
-function HeroSection() {
+interface HeroSectionProps {
+  awake: boolean;
+  onActivate: () => void;
+}
+
+function HeroSection({ awake, onActivate }: HeroSectionProps) {
   return (
-    <section className="relative min-h-screen flex items-center" aria-labelledby="hero-heading">
+    <section
+      className="relative min-h-screen flex items-center transition-all duration-1000"
+      aria-labelledby="hero-heading"
+      onMouseMove={onActivate}
+      onClick={onActivate}
+      style={{ opacity: awake ? 1 : 0.7 }}
+    >
       <div className="container relative">
         <div className="max-w-3xl">
           <div className="flex items-center gap-3 mb-10">
@@ -284,11 +342,11 @@ function HeroSection() {
             </p>
           </div>
 
-          <h1 id="hero-heading" className="text-balance" style={{ fontSize: 'clamp(2.5rem, 5.5vw, 4rem)', lineHeight: 1.05, letterSpacing: '-0.03em', fontWeight: 700 }}>
+          <h1 id="hero-heading" className="text-balance transition-all duration-700" style={{ fontSize: 'clamp(2.5rem, 5.5vw, 4rem)', lineHeight: 1.05, letterSpacing: '-0.03em', fontWeight: 700 }}>
             We build systems<br />that run companies.
           </h1>
 
-          <p className="mt-8 text-base text-ink-muted leading-relaxed max-w-lg text-balance">
+          <p className="mt-8 text-base text-ink-muted leading-relaxed max-w-lg text-balance transition-all duration-700" style={{ opacity: awake ? 1 : 0.6 }}>
             Most companies don&apos;t scale because their systems don&apos;t. We design the operational infrastructure that makes companies scale.
           </p>
 
@@ -540,13 +598,36 @@ function Footer() {
 
 export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [awake, setAwake] = useState(false);
+  const [cursor, setCursor] = useState<{ x: number; y: number } | undefined>();
+  const activateRef = useRef(false);
+
+  const handleActivate = useCallback(() => {
+    if (!activateRef.current) {
+      activateRef.current = true;
+      setAwake(true);
+    }
+  }, []);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    setCursor({ x: e.clientX, y: e.clientY });
+    if (!activateRef.current) {
+      activateRef.current = true;
+      setAwake(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [handleMouseMove]);
 
   return (
     <main id="main-content" tabIndex={-1} style={{ position: 'relative', zIndex: 10 }}>
-      <BackgroundLayers />
+      <BackgroundLayers awake={awake} cursor={cursor} />
       <SchemaScript />
       <Header menuOpen={menuOpen} onToggle={useCallback(() => setMenuOpen((p) => !p), [])} />
-      <HeroSection />
+      <HeroSection awake={awake} onActivate={handleActivate} />
       <ProblemSection />
       <LayersSection />
       <OutcomeSection />
