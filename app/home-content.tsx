@@ -17,123 +17,211 @@ const organizationSchema = {
 };
 
 // ─── Background Depth Layers ─────────────────────────────────────────
-// Multi-layer parallax with LERP interpolation.
-// Each layer has its own easing, depth multiplier, and particle field.
-// Movement feels organic, delayed, with inertia — never snaps to cursor.
+// Single harmonious space field. Stars as dots. Occasional comets with tails.
+// LERP parallax gives depth — environment reacts, never snaps.
 
 function BackgroundLayers({ awake }: { awake: boolean }) {
-  const farRef = useRef<HTMLCanvasElement | null>(null);
-  const midRef = useRef<HTMLCanvasElement | null>(null);
-  const nearRef = useRef<HTMLCanvasElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
-    const farCanvas = farRef.current;
-    const midCanvas = midRef.current;
-    const nearCanvas = nearRef.current;
-    if (!farCanvas || !midCanvas || !nearCanvas) return;
-
-    const farCtx = farCanvas.getContext('2d');
-    const midCtx = midCanvas.getContext('2d');
-    const nearCtx = nearCanvas.getContext('2d');
-    if (!farCtx || !midCtx || !nearCtx) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
     let w = window.innerWidth;
     let h = window.innerHeight;
-    farCanvas.width = w;
-    farCanvas.height = h;
-    midCanvas.width = w;
-    midCanvas.height = h;
-    nearCanvas.width = w;
-    nearCanvas.height = h;
+    canvas.width = w;
+    canvas.height = h;
 
     const resize = () => {
       w = window.innerWidth;
       h = window.innerHeight;
-      farCanvas.width = w;
-      farCanvas.height = h;
-      midCanvas.width = w;
-      midCanvas.height = h;
-      nearCanvas.width = w;
-      nearCanvas.height = h;
+      canvas.width = w;
+      canvas.height = h;
     };
     window.addEventListener('resize', resize);
 
     // LERP state
     let targetX = 0;
     let targetY = 0;
-    let nearCurrentX = 0;
-    let nearCurrentY = 0;
-    let midCurrentX = 0;
-    let midCurrentY = 0;
-    let farCurrentX = 0;
-    let farCurrentY = 0;
+    let nearX = 0;
+    let nearY = 0;
+    let midX = 0;
+    let midY = 0;
+    let farX = 0;
+    let farY = 0;
 
     window.addEventListener('mousemove', (e) => {
-      targetX = (e.clientX / w - 0.5) * 20;
-      targetY = (e.clientY / h - 0.5) * 20;
+      targetX = (e.clientX / w - 0.5) * 8;
+      targetY = (e.clientY / h - 0.5) * 8;
     });
 
-    // Particle fields per layer
-    const farParticles = Array.from({ length: 40 }).map((_, i) => ({
-      x: (i * 97) % w,
-      y: (i * 73) % h,
-      vx: ((i * 13) % 5) / 1500,
-      vy: ((i * 11) % 5) / 1500,
-    }));
+    // Stars — tiny circular dots at varying depths
+    type Star = {
+      x: number;
+      y: number;
+      baseAlpha: number;
+      size: number;
+      layer: 'far' | 'mid' | 'near';
+      drift: number;
+    };
 
-    const midParticles = Array.from({ length: 30 }).map((_, i) => ({
-      x: (i * 83) % w,
-      y: (i * 61) % h,
-      vx: ((i * 17) % 7) / 1200,
-      vy: ((i * 19) % 7) / 1200,
-    }));
+    const stars: Star[] = [];
+    // Far stars — many, tiny, dim
+    for (let i = 0; i < 120; i++) {
+      stars.push({
+        x: (i * 137.508) % w,
+        y: (i * 97.31) % h,
+        baseAlpha: 0.15 + (i % 5) * 0.05,
+        size: 0.5 + (i % 3) * 0.25,
+        layer: 'far',
+        drift: ((i * 3) % 7 - 3) / 8000,
+      });
+    }
+    // Mid stars — moderate
+    for (let i = 0; i < 50; i++) {
+      stars.push({
+        x: (i * 193.7) % w,
+        y: (i * 151.3) % h,
+        baseAlpha: 0.3 + (i % 4) * 0.08,
+        size: 1 + (i % 3) * 0.3,
+        layer: 'mid',
+        drift: ((i * 5) % 9 - 4) / 6000,
+      });
+    }
+    // Near stars — fewer, brighter
+    for (let i = 0; i < 20; i++) {
+      stars.push({
+        x: (i * 271.1) % w,
+        y: (i * 211.7) % h,
+        baseAlpha: 0.5 + (i % 3) * 0.15,
+        size: 1.5 + (i % 2) * 0.5,
+        layer: 'near',
+        drift: ((i * 7) % 11 - 5) / 4000,
+      });
+    }
 
-    const nearParticles = Array.from({ length: 15 }).map((_, i) => ({
-      x: (i * 131) % w,
-      y: (i * 97) % h,
-      vx: ((i * 23) % 9) / 1000,
-      vy: ((i * 29) % 9) / 1000,
-    }));
+    // Comets — rare, streaking, with fading tails
+    type Comet = {
+      active: boolean;
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      life: number;
+      maxLife: number;
+      trail: { x: number; y: number; alpha: number }[];
+    };
 
-    const drawParticles = (
-      ctx: CanvasRenderingContext2D,
-      particles: { x: number; y: number; vx: number; vy: number }[],
-      offsetX: number,
-      offsetY: number,
-      size: number,
-      alpha: number
-    ) => {
-      ctx.clearRect(0, 0, w, h);
-      ctx.save();
-      ctx.translate(offsetX, offsetY);
-      for (let p of particles) {
-        const speed = awake ? 2 : 1;
-        p.x += p.vx * speed * 0.8;
-        p.y += p.vy * speed * 0.8;
-        if (p.x < 0) p.x = w; else if (p.x > w) p.x = 0;
-        if (p.y < 0) p.y = h; else if (p.y > h) p.y = 0;
-        ctx.fillStyle = `rgba(180, 200, 255, ${alpha})`;
-        ctx.fillRect(p.x, p.y, size, size);
-      }
-      ctx.restore();
+    const comets: Comet[] = [];
+    let nextCometAt = 3000 + Math.random() * 5000;
+    let cometTimer = 0;
+
+    const spawnComet = (): Comet => {
+      const fromLeft = Math.random() > 0.5;
+      const angle = (Math.random() - 0.5) * 0.6;
+      const speed = 1.5 + Math.random() * 2;
+      return {
+        active: true,
+        x: fromLeft ? -20 : w + 20,
+        y: Math.random() * h * 0.6,
+        vx: fromLeft ? speed : -speed,
+        vy: Math.sin(angle) * speed * 0.4,
+        life: 0,
+        maxLife: 80 + Math.random() * 60,
+        trail: [],
+      };
     };
 
     let raf = 0;
-    const loop = () => {
-      nearCurrentX += (targetX - nearCurrentX) * 0.08;
-      nearCurrentY += (targetY - nearCurrentY) * 0.08;
-      midCurrentX += (targetX - midCurrentX) * 0.05;
-      midCurrentY += (targetY - midCurrentY) * 0.05;
-      farCurrentX += (targetX - farCurrentX) * 0.03;
-      farCurrentY += (targetY - farCurrentY) * 0.03;
+    let lastTime = performance.now();
 
-      drawParticles(farCtx, farParticles, farCurrentX * 0.2, farCurrentY * 0.2, 1.5, awake ? 0.4 : 0.25);
-      drawParticles(midCtx, midParticles, midCurrentX * 0.5, midCurrentY * 0.5, 2, awake ? 0.6 : 0.35);
-      drawParticles(nearCtx, nearParticles, nearCurrentX, nearCurrentY, 2.5, awake ? 0.9 : 0.5);
+    const loop = (now: number) => {
+      const dt = Math.min(now - lastTime, 50);
+      lastTime = now;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // LERP
+      nearX += (targetX - nearX) * 0.08;
+      nearY += (targetY - nearY) * 0.08;
+      midX += (targetX - midX) * 0.05;
+      midY += (targetY - midY) * 0.05;
+      farX += (targetX - farX) * 0.03;
+      farY += (targetY - farY) * 0.03;
+
+      const awakeBoost = awake ? 1.8 : 1;
+
+      // Draw stars
+      for (let s of stars) {
+        s.x += s.drift * awakeBoost;
+        if (s.x < -5) s.x = w + 5;
+        if (s.x > w + 5) s.x = -5;
+
+        let ox = 0;
+        let oy = 0;
+        if (s.layer === 'far') { ox = farX * 0.2; oy = farY * 0.2; }
+        else if (s.layer === 'mid') { ox = midX * 0.5; oy = midY * 0.5; }
+        else { ox = nearX; oy = nearY; }
+
+        const alpha = s.baseAlpha * (awake ? 1.6 : 1);
+        ctx.beginPath();
+        ctx.arc(s.x + ox, s.y + oy, s.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(200, 215, 255, ${alpha})`;
+        ctx.fill();
+      }
+
+      // Comet spawning
+      cometTimer += dt;
+      if (cometTimer > nextCometAt && comets.filter(c => c.active).length < 2) {
+        comets.push(spawnComet());
+        cometTimer = 0;
+        nextCometAt = 4000 + Math.random() * 8000;
+      }
+
+      // Update & draw comets
+      for (let i = comets.length - 1; i >= 0; i--) {
+        const c = comets[i];
+        if (!c.active) { comets.splice(i, 1); continue; }
+
+        c.life++;
+        c.x += c.vx;
+        c.y += c.vy;
+
+        const progress = c.life / c.maxLife;
+        const fadeIn = Math.min(c.life / 10, 1);
+        const fadeOut = 1 - Math.pow(progress, 2);
+        const alpha = fadeIn * fadeOut;
+
+        // Trail
+        c.trail.unshift({ x: c.x, y: c.y, alpha });
+        if (c.trail.length > 25) c.trail.pop();
+
+        // Draw tail
+        for (let t = 1; t < c.trail.length; t++) {
+          const p = c.trail[t];
+          const tailAlpha = p.alpha * (1 - t / c.trail.length) * 0.4;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 1.5 * (1 - t / c.trail.length), 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(180, 210, 255, ${tailAlpha})`;
+          ctx.fill();
+        }
+
+        // Head
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(220, 235, 255, ${alpha * 0.9})`;
+        ctx.fill();
+
+        if (c.life > c.maxLife || c.x < -100 || c.x > w + 100 || c.y < -100 || c.y > h + 100) {
+          c.active = false;
+        }
+      }
 
       raf = requestAnimationFrame(loop);
     };
-    loop();
+    raf = requestAnimationFrame(loop);
 
     return () => {
       cancelAnimationFrame(raf);
@@ -143,9 +231,7 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
 
   return (
     <>
-      <canvas ref={farRef} aria-hidden="true" className="particles-layer" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 1, pointerEvents: 'none' }} />
-      <canvas ref={midRef} aria-hidden="true" className="particles-layer" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 2, pointerEvents: 'none' }} />
-      <canvas ref={nearRef} aria-hidden="true" className="particles-layer" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 3, pointerEvents: 'none' }} />
+      <canvas ref={canvasRef} aria-hidden="true" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 1, pointerEvents: 'none' }} />
       <div className="korantis-atmosphere-grid" aria-hidden="true" />
       <div className="korantis-vignette" aria-hidden="true" />
     </>
