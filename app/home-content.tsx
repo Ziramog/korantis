@@ -519,6 +519,28 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
+// ─── K Logo Icon — matches /korantisicon.svg ─────────────────────────
+// Single source of truth for the K icon across the app.
+// Paths: #k-stem, #k-upper, #k-lower — animation-ready.
+
+function KLogoIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 64 64"
+      fill="none"
+      className={className}
+      aria-hidden="true"
+    >
+      <g id="korantis-k" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path id="k-stem" d="M16 8 L16 56" />
+        <path id="k-upper" d="M16 32 L48 8" />
+        <path id="k-lower" d="M16 32 L48 56" />
+      </g>
+    </svg>
+  );
+}
+
 // ─── Header ───────────────────────────────────────────────────────────
 
 interface HeaderProps {
@@ -531,13 +553,7 @@ function Header({ menuOpen, onToggle }: HeaderProps) {
     <header className="fixed top-0 left-0 right-0 z-50 bg-canvas/80 backdrop-blur-md border-b border-border/50" role="banner">
       <div className="container flex items-center justify-between h-14">
         <a href="/" className="korantis-nav-logo" aria-label="Korantis home">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" aria-hidden="true">
-            <g stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path id="k-stem" d="M16 8 L16 56" />
-              <path id="k-upper" d="M16 32 L48 8" />
-              <path id="k-lower" d="M16 32 L48 56" />
-            </g>
-          </svg>
+          <KLogoIcon />
         </a>
 
         <nav className="hidden md:flex items-center gap-10" aria-label="Main navigation">
