@@ -1,0 +1,289 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════════
+ * KORANTIS — Micro-Interactions Stylesheet
+ * ═══════════════════════════════════════════════════════════════════════
+ * Standalone interaction CSS. Safe to remove — no layout dependencies.
+ * ═══════════════════════════════════════════════════════════════════════
+ */
+
+/* ──────────────────────────────────────────────────────────────────────
+   1. CURSOR LIGHT — Radial glow that follows mouse
+   ────────────────────────────────────────────────────────────────────── */
+
+.korantis-cursor-light {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9998;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(122, 92, 255, 0.07) 0%,
+    rgba(122, 92, 255, 0.02) 30%,
+    transparent 70%
+  );
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 1s ease;
+  will-change: left, top;
+}
+
+.korantis-cursor-light.is-active {
+  opacity: 1;
+}
+
+/* Disable on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .korantis-cursor-light {
+    display: none !important;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   2. SCROLL REVEAL — Fade-in + upward movement
+   ────────────────────────────────────────────────────────────────────── */
+
+.korantis-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: none;
+}
+
+.korantis-reveal.is-revealed {
+  animation: korantis-reveal-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes korantis-reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stagger delays */
+.korantis-reveal[data-delay="1"] { animation-delay: 0.1s !important; }
+.korantis-reveal[data-delay="2"] { animation-delay: 0.2s !important; }
+.korantis-reveal[data-delay="3"] { animation-delay: 0.3s !important; }
+.korantis-reveal[data-delay="4"] { animation-delay: 0.4s !important; }
+.korantis-reveal[data-delay="5"] { animation-delay: 0.5s !important; }
+
+/* ──────────────────────────────────────────────────────────────────────
+   3. BUTTON SYSTEM — System-control button styling
+   ────────────────────────────────────────────────────────────────────── */
+
+.korantis-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: border-color 0.5s ease, box-shadow 0.5s ease, transform 0.15s ease, background-color 0.3s ease;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Animated top border line on hover */
+.korantis-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(122, 92, 255, 0.5), transparent);
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.korantis-btn:hover::before {
+  width: 100%;
+}
+
+.korantis-btn:hover {
+  border-color: rgba(122, 92, 255, 0.25);
+  box-shadow: 0 0 15px rgba(122, 92, 255, 0.08);
+}
+
+.korantis-btn:active {
+  transform: scale(0.98);
+  background-color: rgba(122, 92, 255, 0.04);
+}
+
+/* Primary variant — slightly more prominent border */
+.korantis-btn--primary {
+  border-color: rgba(122, 92, 255, 0.3);
+}
+
+.korantis-btn--primary:hover {
+  border-color: rgba(122, 92, 255, 0.5);
+  box-shadow: 0 0 20px rgba(122, 92, 255, 0.12);
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   4. FORM INPUTS — Minimal underline inputs with focus glow
+   ────────────────────────────────────────────────────────────────────── */
+
+.korantis-input {
+  width: 100%;
+  padding: 0.5rem 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-family: inherit;
+  border-radius: 0;
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+  outline: none;
+}
+
+.korantis-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.korantis-input:focus {
+  border-color: rgba(122, 92, 255, 0.4);
+  box-shadow: 0 1px 0 0 rgba(122, 92, 255, 0.2);
+}
+
+.korantis-input--textarea {
+  resize: none;
+  min-height: 80px;
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   5. PANEL CARDS — Floating panels with top-line reveal
+   ────────────────────────────────────────────────────────────────────── */
+
+.korantis-panel {
+  position: relative;
+  background: #1A1A1F;
+  border: 1px solid #2A2A30;
+  border-radius: 2px;
+  padding: 2rem;
+  transition: border-color 0.6s ease, box-shadow 0.6s ease;
+  overflow: hidden;
+}
+
+.korantis-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, transparent, transparent);
+  transition: background 0.7s ease;
+}
+
+.korantis-panel:hover {
+  border-color: rgba(122, 92, 255, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 1px rgba(122, 92, 255, 0.15);
+}
+
+.korantis-panel:hover::before {
+  background: linear-gradient(90deg, transparent, rgba(122, 92, 255, 0.3), transparent);
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   6. NAV LINK — Animated underline on hover
+   ────────────────────────────────────────────────────────────────────── */
+
+.korantis-nav-link {
+  position: relative;
+}
+
+.korantis-nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: rgba(122, 92, 255, 0.5);
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.korantis-nav-link:hover::after {
+  width: 100%;
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   7. NAVBAR — Scroll-aware styling
+   ────────────────────────────────────────────────────────────────────── */
+
+.korantis-nav {
+  transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+}
+
+.korantis-nav.is-scrolled {
+  background-color: rgba(11, 11, 13, 0.85) !important;
+  backdrop-filter: blur(16px);
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   8. SECTION DEPTH MARKER — Top border gradient
+   ────────────────────────────────────────────────────────────────────── */
+
+.korantis-section-depth {
+  position: relative;
+}
+
+.korantis-section-depth::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 60px;
+  background: linear-gradient(to bottom, #2A2A30, transparent);
+  pointer-events: none;
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   9. PARTICLE CANVAS — For JS-created particles
+   ────────────────────────────────────────────────────────────────────── */
+
+.korantis-particles-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   Reduced Motion — Disable all animations
+   ────────────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .korantis-reveal {
+    opacity: 1;
+    transform: none;
+  }
+
+  .korantis-cursor-light {
+    display: none !important;
+  }
+
+  .korantis-particles-canvas {
+    display: none !important;
+  }
+}

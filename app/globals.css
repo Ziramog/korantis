@@ -1,0 +1,278 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── Korantis Brand ───────────────────────────────────────────────── */
+  --color-brand-violet: #7A5CFF;
+  --color-brand-blue: #2563FF;
+
+  /* ── Strict Color System ─────────────────────────────────────────── */
+  --color-canvas: #0B0B0D;
+  --color-canvas-elevated: #0F0F12;
+  --color-surface: #1A1A1F;
+  --color-surface-elevated: #222228;
+
+  --color-ink: #FFFFFF;
+  --color-ink-muted: #88888E;
+  --color-ink-subtle: #55555A;
+
+  --color-border: #2A2A30;
+  --color-border-light: rgba(255, 255, 255, 0.04);
+
+  /* ── Semantic ───────────────────────────────────────────────────── */
+  --color-success: #34D399;
+  --color-success-bg: rgba(52, 211, 153, 0.08);
+  --color-success-border: rgba(52, 211, 153, 0.15);
+  --color-error: #F87171;
+  --color-error-bg: rgba(248, 113, 113, 0.08);
+  --color-error-border: rgba(248, 113, 113, 0.15);
+
+  /* ── Typography ─────────────────────────────────────────────────── */
+  --font-heading: 'Space Grotesk', 'Inter', sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
+
+  --text-display: 4.5rem;
+  --text-h1: 3.5rem;
+  --text-h2: 2.25rem;
+  --text-h3: 1.25rem;
+  --text-body: 1rem;
+  --text-small: 0.875rem;
+  --text-xs: 0.75rem;
+
+  --spacing-section: 120px;
+  --spacing-section-sm: 80px;
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+
+  --shadow-panel: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-panel-hover: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 1px rgba(122, 92, 255, 0.15);
+  --shadow-glow: 0 0 20px rgba(122, 92, 255, 0.12);
+  --shadow-btn: 0 0 15px rgba(122, 92, 255, 0.08);
+}
+
+/* ── Base ───────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 56px;
+}
+
+/* ── Typography ─────────────────────────────────────────────────────── */
+
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 500;
+  margin: 0;
+  color: var(--color-ink);
+}
+
+h1 {
+  font-family: var(--font-heading);
+  font-size: var(--text-h1);
+  letter-spacing: -0.03em;
+}
+
+h2 {
+  font-family: var(--font-heading);
+  font-size: var(--text-h2);
+}
+
+h3 {
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+}
+
+p {
+  margin: 0;
+  line-height: 1.7;
+  color: var(--color-ink-muted);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ── Focus ──────────────────────────────────────────────────────────── */
+
+*:focus-visible {
+  outline: 1px solid var(--color-brand-violet);
+  outline-offset: 2px;
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── Utility Classes ────────────────────────────────────────────────── */
+
+@utility container {
+  max-width: 72rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+@utility section-padding {
+  padding-top: var(--spacing-section);
+  padding-bottom: var(--spacing-section);
+}
+
+@utility section-padding-sm {
+  padding-top: var(--spacing-section-sm);
+  padding-bottom: var(--spacing-section-sm);
+}
+
+@utility text-balance {
+  text-wrap: balance;
+}
+
+@utility sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ── Depth Layer: Grid Background (secondary, minimal) ─────────────── */
+/* Kept for compatibility — very subtle, almost invisible */
+
+.korantis-grid-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 100px 100px;
+}
+
+/* ── Depth Layer: Center Ambient Glow ────────────────────────────────
+   Very soft white light in center of screen. Creates depth and void feel.
+   z-index: 0 — same as grid, contributes to overall depth.
+   ─────────────────────────────────────────────────────────────────── */
+
+.korantis-center-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.01) 0%,
+    transparent 65%
+  );
+}
+
+/* ── Depth Layer: Vignette ─────────────────────────────────────────── */
+
+.korantis-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 40%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+}
+
+/* ── Depth Layer: Star Field ───────────────────────────────────────── */
+
+.korantis-star-field {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.korantis-star {
+  position: absolute;
+  width: var(--star-size, 1px);
+  height: var(--star-size, 1px);
+  background: rgba(255, 255, 255, var(--star-opacity, 0.15));
+  border-radius: 50%;
+  left: var(--star-x, 0%);
+  top: var(--star-y, 0%);
+  animation: korantis-drift var(--star-drift, 30s) ease-in-out infinite;
+  animation-delay: var(--star-delay, 0s);
+}
+
+@keyframes korantis-drift {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(var(--drift-dx1, 3px), var(--drift-dy1, -4px)); }
+  50% { transform: translate(var(--drift-dx2, -2px), var(--drift-dy2, -2px)); }
+  75% { transform: translate(var(--drift-dx3, 2px), var(--drift-dy3, 3px)); }
+}
+
+/* ── Loading Screen ────────────────────────────────────────────────── */
+
+@keyframes korantis-loader-letter {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes korantis-loader-bar {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* ── Reduced Motion ─────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── High Contrast ──────────────────────────────────────────────────── */
+
+@media (prefers-contrast: high) {
+  :root {
+    --color-border: #444444;
+    --color-ink-muted: #AAAAAA;
+  }
+  a { text-decoration: underline; }
+}

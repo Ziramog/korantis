@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KORANTIS - Intelligence Infrastructure</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0c10;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(122, 92, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(37, 99, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(122, 92, 255, 0.1) 0%, transparent 50%);
+            animation: bgPulse 8s ease-in-out infinite;
+        }
+
+        @keyframes bgPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Grid Lines */
+        .grid {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background-image: 
+                linear-gradient(rgba(122, 92, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(122, 92, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            top: -50%;
+            left: -50%;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Particles */
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #7A5CFF;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #7A5CFF, 0 0 20px #2563FF;
+            animation: float 15s infinite;
+            opacity: 0;
+        }
+
+        @keyframes float {
+            0% {
+                opacity: 0;
+                transform: translateY(100vh) scale(0);
+            }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% {
+                opacity: 0;
+                transform: translateY(-100vh) scale(1.5);
+            }
+        }
+
+        /* Logo Container */
+        .logo-container {
+            position: relative;
+            z-index: 10;
+            opacity: 0;
+            transform: scale(0.8) translateY(30px);
+            animation: logoEnter 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            animation-delay: 0.5s;
+        }
+
+        @keyframes logoEnter {
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* Main Logo Image */
+        .logo-image {
+            max-width: 900px;
+            width: 90%;
+            height: auto;
+            filter: drop-shadow(0 0 40px rgba(122, 92, 255, 0.5));
+            animation: logoGlow 4s ease-in-out infinite, logoFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes logoGlow {
+            0%, 100% {
+                filter: drop-shadow(0 0 40px rgba(122, 92, 255, 0.5));
+            }
+            50% {
+                filter: drop-shadow(0 0 70px rgba(122, 92, 255, 0.8));
+            }
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+
+        /* Corner Accents */
+        .corner {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border: 2px solid #7A5CFF;
+            opacity: 0;
+            animation: cornerAppear 1s ease-out forwards;
+        }
+
+        @keyframes cornerAppear {
+            to { opacity: 0.6; }
+        }
+
+        .corner-tl {
+            top: 20%;
+            left: 15%;
+            border-right: none;
+            border-bottom: none;
+            animation-delay: 1s;
+        }
+
+        .corner-tr {
+            top: 20%;
+            right: 15%;
+            border-left: none;
+            border-bottom: none;
+            animation-delay: 1.2s;
+        }
+
+        .corner-bl {
+            bottom: 20%;
+            left: 15%;
+            border-right: none;
+            border-top: none;
+            animation-delay: 1.4s;
+        }
+
+        .corner-br {
+            bottom: 20%;
+            right: 15%;
+            border-left: none;
+            border-top: none;
+            animation-delay: 1.6s;
+        }
+
+        /* Rotating Ring */
+        .rotating-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 700px;
+            height: 300px;
+            border: 1px solid rgba(122, 92, 255, 0.2);
+            border-radius: 150px;
+            animation: ringRotate 20s linear infinite;
+            opacity: 0;
+            animation-delay: 1.5s, 1.5s;
+            animation-fill-mode: forwards;
+        }
+
+        @keyframes ringRotate {
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        /* Orbiting Elements */
+        .orbit {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 800px;
+            height: 800px;
+            transform: translate(-50%, -50%);
+            animation: orbitRotate 30s linear infinite;
+            opacity: 0;
+            animation-delay: 2s;
+            animation-fill-mode: forwards;
+        }
+
+        @keyframes orbitRotate {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .orbit-dot {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #7A5CFF;
+            border-radius: 50%;
+            box-shadow: 0 0 20px #7A5CFF;
+        }
+
+        .orbit-dot:nth-child(1) { top: 0; left: 50%; transform: translateX(-50%); }
+        .orbit-dot:nth-child(2) { bottom: 0; left: 50%; transform: translateX(-50%); }
+        .orbit-dot:nth-child(3) { left: 0; top: 50%; transform: translateY(-50%); }
+        .orbit-dot:nth-child(4) { right: 0; top: 50%; transform: translateY(-50%); }
+
+        /* Scanline Effect */
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0.3;
+        }
+
+        /* Loading Screen */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0c10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 30px;
+            z-index: 9999;
+            transition: opacity 0.8s;
+        }
+
+        .loader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loader-logo {
+            font-size: 48px;
+            letter-spacing: 15px;
+            color: #7A5CFF;
+            animation: loaderPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes loaderPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; text-shadow: 0 0 30px #7A5CFF; }
+        }
+
+        .loader-bar {
+            width: 200px;
+            height: 2px;
+            background: rgba(122, 92, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loader-bar::after {
+            content: '';
+            position: absolute;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, #7A5CFF, transparent);
+            animation: loading 2s ease-in-out infinite;
+        }
+
+        @keyframes loading {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* Tech Lines */
+        .tech-line {
+            position: absolute;
+            background: linear-gradient(90deg, transparent, #7A5CFF, transparent);
+            height: 1px;
+            opacity: 0.3;
+            animation: techLineMove 8s linear infinite;
+        }
+
+        @keyframes techLineMove {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .logo-image {
+                max-width: 95%;
+            }
+            .rotating-ring {
+                width: 400px;
+                height: 180px;
+            }
+            .orbit {
+                width: 500px;
+                height: 500px;
+            }
+            .corner {
+                width: 40px;
+                height: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loader" id="loader">
+        <div class="loader-logo">KORANTIS</div>
+        <div class="loader-bar"></div>
+    </div>
+
+    <div class="container">
+        <!-- Background Effects -->
+        <div class="bg-animation"></div>
+        <div class="grid"></div>
+        <div class="particles" id="particles"></div>
+        <div class="scanline"></div>
+
+        <!-- Tech Lines -->
+        <div class="tech-line" style="top: 30%; width: 200px; animation-delay: 0s;"></div>
+        <div class="tech-line" style="top: 70%; width: 300px; animation-delay: 2s;"></div>
+        <div class="tech-line" style="top: 50%; width: 250px; animation-delay: 4s;"></div>
+
+        <!-- Corner Accents -->
+        <div class="corner corner-tl"></div>
+        <div class="corner corner-tr"></div>
+        <div class="corner corner-bl"></div>
+        <div class="corner corner-br"></div>
+
+        <!-- Rotating Ring -->
+        <div class="rotating-ring"></div>
+
+        <!-- Orbiting Dots -->
+        <div class="orbit">
+            <div class="orbit-dot"></div>
+            <div class="orbit-dot"></div>
+            <div class="orbit-dot"></div>
+            <div class="orbit-dot"></div>
+        </div>
+
+        <!-- Main Logo - USING YOUR PNG -->
+        <div class="logo-container">
+            <img src="korantis-logo.png" alt="KORANTIS - Intelligence Infrastructure" class="logo-image" id="logoImg">
+        </div>
+    </div>
+
+    <script>
+        // Create particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 60; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        // Hide loader
+        window.addEventListener('load', () => {
+            createParticles();
+            setTimeout(() => {
+                document.getElementById('loader').classList.add('hidden');
+            }, 2000);
+        });
+
+        // Mouse parallax effect
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            
+            const logo = document.querySelector('.logo-container');
+            const ring = document.querySelector('.rotating-ring');
+            
+            logo.style.transform = `perspective(1000px) rotateY(${(x - 0.5) * 5}deg) rotateX(${-(y - 0.5) * 5}deg)`;
+            ring.style.transform = `translate(-50%, -50%) rotate(${Date.now() / 50}deg) perspective(1000px) rotateX(${(y - 0.5) * 10}deg)`;
+        });
+
+        // Handle image error - fallback message
+        document.getElementById('logoImg').addEventListener('error', function() {
+            console.log('Please make sure korantis-logo.png is in the same folder as this HTML file');
+            this.style.display = 'none';
+            
+            // Create a placeholder
+            const placeholder = document.createElement('div');
+            placeholder.style.cssText = `
+                color: #7A5CFF;
+                font-size: 24px;
+                letter-spacing: 5px;
+                text-align: center;
+                padding: 40px;
+                border: 2px dashed rgba(122, 92, 255, 0.3);
+                border-radius: 10px;
+            `;
+            placeholder.innerHTML = 'Place your<br>KORANTIS LOGO.PNG<br>in the same folder';
+            this.parentElement.appendChild(placeholder);
+        });
+    </script>
+</body>
+</html>

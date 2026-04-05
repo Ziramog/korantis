@@ -1,0 +1,222 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════════
+ * KORANTIS — Atmosphere Stylesheet
+ * ═══════════════════════════════════════════════════════════════════════
+ * Mathematical intro + space atmosphere. Additive only.
+ * Safe to remove — no layout dependencies.
+ *
+ * Depth z-index map:
+ *   0    — grid background
+ *   1    — particles canvas
+ *   2    — ambient light overlay
+ *   10+  — content (main)
+ *   100  — intro overlay
+ * ═══════════════════════════════════════════════════════════════════════
+ */
+
+/* ──────────────────────────────────────────────────────────────────────
+   1. ENHANCED GRID BACKGROUND
+   ──────────────────────────────────────────────────────────────────────
+   Thin lines at very low opacity. Fixed position. Subtle movement on
+   scroll via CSS custom property set by interactions.js parallax.
+   ────────────────────────────────────────────────────────────────────── */
+
+.korantis-atmosphere-grid {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.045;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.4) 1px, transparent 1px);
+  background-size: 80px 80px;
+  /* Subtle scroll parallax via JS-set custom property */
+  transform: translateY(var(--atmosphere-grid-scroll-y, 0px));
+  will-change: transform;
+  /* Fade toward edges — mask creates depth */
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.3) 60%, transparent 100%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.3) 60%, transparent 100%);
+}
+
+/* Secondary finer grid for micro-depth — greatly reduced */
+.korantis-atmosphere-grid::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+  background-size: 30px 30px;
+  opacity: 0.25;
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   2. AMBIENT LIGHT — Radial gradient overlay
+   ──────────────────────────────────────────────────────────────────────
+   Center slightly lighter, edges darker. Very subtle.
+   Sits above grid, below content.
+   ────────────────────────────────────────────────────────────────────── */
+
+.korantis-ambient-light {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background: radial-gradient(
+    ellipse 80% 60% at 50% 40%,
+    rgba(255, 255, 255, 0.008) 0%,
+    transparent 70%
+  );
+  filter: blur(40px);
+}
+
+/* Secondary ambient — subtle violet tint from brand color
+   Opacity reduced by ~50% (was 0.018 → 0.009) for presence-not-color feel */
+.korantis-ambient-violet {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background: radial-gradient(
+    ellipse 50% 50% at 30% 60%,
+    rgba(122, 92, 255, 0.009) 0%,
+    transparent 65%
+  );
+  filter: blur(60px);
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   3. PARTICLES CANVAS
+   ──────────────────────────────────────────────────────────────────────
+   Managed by space.js. Fixed, full-screen, pointer-events: none.
+   z-index: 1 — above grid, below ambient light.
+   ────────────────────────────────────────────────────────────────────── */
+
+.korantis-space-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   4. SVG MATHEMATICAL INTRO
+   ──────────────────────────────────────────────────────────────────────
+   Lightweight intro overlay. z-index: 100. Fades out after animation.
+   Contains centered SVG with animated curve path.
+   ────────────────────────────────────────────────────────────────────── */
+
+.korantis-intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-canvas, #0B0B0D);
+  pointer-events: auto;
+  /* Fade-out transition */
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.korantis-intro-overlay.is-fading {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.korantis-intro-overlay.is-hidden {
+  display: none;
+}
+
+/* SVG curve styling — 1.4px stroke with very soft glow */
+.korantis-intro-curve {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 1.4px;
+  opacity: 0.7;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.12));
+  /* Animated via JS: stroke-dasharray / stroke-dashoffset */
+  transition: opacity 0.6s ease-out, stroke-dashoffset 0ms;
+}
+
+/* KORANTIS text label in intro */
+.korantis-intro-label {
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.15em;
+  letter-spacing: 0.3em;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.korantis-intro-label .letter {
+  opacity: 0;
+  transform: translateY(6px);
+  animation: korantis-intro-letter 0.4s ease-out forwards;
+}
+
+@keyframes korantis-intro-letter {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hero content fade-in class (applied to hero section after intro) */
+.korantis-hero-ready {
+  opacity: 1 !important;
+  transition: opacity 0.8s ease-out 0.3s;
+}
+
+/* Hero entry wrapper — fades in with slight upward motion after intro */
+.korantis-hero-entry {
+  will-change: opacity, transform;
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   5. DEPTH LAYERS — z-index enforcement
+   ──────────────────────────────────────────────────────────────────────
+   Grid:        z-index 0
+   Particles:   z-index 1
+   Ambient:     z-index 2
+   Content:     z-index 10+ (existing)
+   Intro:       z-index 100
+   ────────────────────────────────────────────────────────────────────── */
+
+/* Ensure main content is always above atmosphere layers */
+.korantis-main-content {
+  position: relative;
+  z-index: 10;
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   6. REDUCED MOTION
+   ──────────────────────────────────────────────────────────────────────
+   Disable all intro animations. Show content immediately.
+   ────────────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .korantis-intro-overlay {
+    opacity: 0;
+    pointer-events: none;
+    display: none;
+  }
+
+  .korantis-intro-label .letter {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+
+  .korantis-atmosphere-grid {
+    transform: none;
+  }
+}
