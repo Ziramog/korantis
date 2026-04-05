@@ -4,6 +4,12 @@
  * ═══════════════════════════════════════════════════════════════════════
  * Subtle particle system that responds to the user.
  *
+ * Space design:
+ *   • Few particles — space is mostly empty
+ *   • 2-3 "anchor" particles — spatial reference points
+ *   • Extreme depth contrast — far barely exists, near barely noticed
+ *   • Grid fades toward edges — coordinate system recedes
+ *
  * Behavior:
  *   • Mouse parallax — layers shift subtly with cursor
  *   • Particle repulsion — near cursor, particles gently shift
@@ -11,7 +17,7 @@
  *   • Grid micro-parallax — barely moves with mouse
  *
  * Performance:
- *   • 20 particles on mobile, 35 on desktop
+ *   • 12 particles on mobile, 18 on desktop
  *   • 3 comets on desktop, 2 on mobile
  *   • requestAnimationFrame + lerp smoothing
  *   • No touch effects on mobile
@@ -48,7 +54,7 @@
      ────────────────────────────────────────────────────────────────── */
 
   var mouse = { x: 0, y: 0, lx: 0, ly: 0, active: false };
-  var PARALLAX_LERP = 0.03; // smooth interpolation factor
+  var PARALLAX_LERP = 0.03;
 
   function onMouseMove(e) {
     mouse.x = e.clientX;
@@ -63,21 +69,29 @@
   }
 
   /* ──────────────────────────────────────────────────────────────────
-     PARTICLE — small drifting dots with depth layers
+     PARTICLE — small drifting dots with extreme depth contrast
+
+     Layer 0 (far):  60% — barely visible, 0.2-0.3px, ghost opacity
+     Layer 1 (mid):  25% — almost invisible, 0.3-0.5px
+     Layer 2 (near): 15% — faintly visible, 0.5-0.8px
+
+     Space is mostly empty. What exists should feel meaningful.
      ────────────────────────────────────────────────────────────────── */
 
   var REPEL_RADIUS = 80;
   var REPEL_FORCE = 0.3;
 
   function Particle(canvasW, canvasH) {
-    // 50% far, 30% mid, 20% near
     var r = Math.random();
-    this.depth = r < 0.5 ? 0 : r < 0.8 ? 1 : 2;
+    this.depth = r < 0.6 ? 0 : r < 0.85 ? 1 : 2;
 
     var depthConfig = [
-      { sizeMin: 0.2, sizeMax: 0.5, speedMul: 0.15, opacityMin: 0.03, opacityMax: 0.08, parallaxMul: 0.015 },
-      { sizeMin: 0.4, sizeMax: 0.7, speedMul: 0.35, opacityMin: 0.06, opacityMax: 0.14, parallaxMul: 0.03  },
-      { sizeMin: 0.6, sizeMax: 1.0, speedMul: 0.6,  opacityMin: 0.1,  opacityMax: 0.22, parallaxMul: 0.06  },
+      // Far: barely there, almost lost in void
+      { sizeMin: 0.15, sizeMax: 0.3,  speedMul: 0.1,  opacityMin: 0.02, opacityMax: 0.05, parallaxMul: 0.01  },
+      // Mid: almost invisible
+      { sizeMin: 0.3,  sizeMax: 0.5,  speedMul: 0.25, opacityMin: 0.04, opacityMax: 0.1,  parallaxMul: 0.025 },
+      // Near: faintly visible, closest thing to "present"
+      { sizeMin: 0.5,  sizeMax: 0.8,  speedMul: 0.45, opacityMin: 0.08, opacityMax: 0.18, parallaxMul: 0.05  },
     ];
 
     var cfg = depthConfig[this.depth];
@@ -86,13 +100,13 @@
     this.y = Math.random() * canvasH;
     this.size = cfg.sizeMin + Math.random() * (cfg.sizeMax - cfg.sizeMin);
 
-    // Very slow drift
-    this.vx = (Math.random() - 0.5) * 0.06 * cfg.speedMul;
-    this.vy = (Math.random() - 0.5) * 0.05 * cfg.speedMul;
+    // Extremely slow drift
+    this.vx = (Math.random() - 0.5) * 0.04 * cfg.speedMul;
+    this.vy = (Math.random() - 0.5) * 0.03 * cfg.speedMul;
 
     this.baseOpacity = cfg.opacityMin + Math.random() * (cfg.opacityMax - cfg.opacityMin);
     this.opacity = this.baseOpacity;
-    this.pulseSpeed = 0.0008 + Math.random() * 0.0015;
+    this.pulseSpeed = 0.0006 + Math.random() * 0.001;
     this.pulsePhase = Math.random() * Math.PI * 2;
 
     // Parallax offset (mouse reactive)
@@ -104,6 +118,14 @@
     this.r = 255;
     this.g = 255;
     this.b = 255;
+
+    // 1 in 8 particles is an "anchor" — slightly more visible reference point
+    this.isAnchor = Math.random() < 0.125;
+    if (this.isAnchor) {
+      this.baseOpacity *= 2.0;
+      this.opacity = this.baseOpacity;
+      this.size *= 1.3;
+    }
   }
 
   Particle.prototype.update = function (dt, time) {
@@ -112,7 +134,7 @@
     this.y += this.vy * dt;
 
     // Opacity pulse
-    this.opacity = this.baseOpacity + Math.sin(time * this.pulseSpeed + this.pulsePhase) * 0.025;
+    this.opacity = this.baseOpacity + Math.sin(time * this.pulseSpeed + this.pulsePhase) * 0.015;
 
     // Mouse parallax (different per depth layer)
     if (mouse.active) {
@@ -135,7 +157,7 @@
         this.vx += (dx / dist) * force * 0.01;
         this.vy += (dy / dist) * force * 0.01;
         // Dampen back to natural speed
-        var maxDrift = 0.08;
+        var maxDrift = 0.06;
         var spd = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
         if (spd > maxDrift) {
           this.vx = (this.vx / spd) * maxDrift;
@@ -164,7 +186,6 @@
 
   /* ──────────────────────────────────────────────────────────────────
      COMET — directional white streak, fade in → move → fade out
-     Spawns with slight bias toward mouse when available.
      ────────────────────────────────────────────────────────────────── */
 
   function Comet(canvasW, canvasH) {
@@ -178,13 +199,10 @@
     var w = this.canvasW;
     var h = this.canvasH;
     var isRare = Math.random() < 0.17;
-
-    // 1 in 4 comets biases toward mouse direction
     var useMouseBias = mouse.active && Math.random() < 0.25;
 
     if (useMouseBias) {
-      // Spawn from edge, bias direction toward mouse
-      var edge = Math.floor(Math.random() * 4); // 0=top, 1=right, 2=bottom, 3=left
+      var edge = Math.floor(Math.random() * 4);
       if (edge === 0) {
         this.x = Math.random() * w;
         this.y = -10;
@@ -199,7 +217,6 @@
         this.y = Math.random() * h;
       }
 
-      // Direction toward mouse (with noise)
       var targetX = mouse.lx + (Math.random() - 0.5) * 300;
       var targetY = mouse.ly + (Math.random() - 0.5) * 300;
       var angle = Math.atan2(targetY - this.y, targetX - this.x);
@@ -207,7 +224,6 @@
       this.vx = Math.cos(angle) * speed;
       this.vy = Math.sin(angle) * speed;
     } else {
-      // Standard diagonal spawn
       var fromLeft = Math.random() < 0.6;
       var fromTop = Math.random() < 0.7;
 
@@ -229,11 +245,9 @@
       }
     }
 
-    // Smoother curve via gentle acceleration
     this.ax = (Math.random() - 0.5) * 0.00004;
     this.ay = (Math.random() - 0.5) * 0.00003;
 
-    // Trail length: normal 24-56px, rare 50-80px
     this.length = isRare ? 50 + Math.random() * 30 : 24 + Math.random() * 32;
     this.opacity = 0;
     this.maxOpacity = isRare ? 0.3 + Math.random() * 0.1 : 0.12 + Math.random() * 0.12;
@@ -267,14 +281,12 @@
       }
     }
 
-    // Velocity with slight acceleration (curve)
     this.vx += this.ax * dt;
     this.vy += this.ay * dt;
 
     this.x += this.vx * dt;
     this.y += this.vy * dt;
 
-    // Kill if way off screen
     var margin = 100;
     if (this.x < -margin || this.x > this.canvasW + margin ||
         this.y < -margin || this.y > this.canvasH + margin) {
@@ -313,7 +325,7 @@
       this.nextSpawn -= dt;
       if (this.nextSpawn <= 0) {
         this.spawn();
-        this.nextSpawn = 6000 + Math.random() * 8000; // 6–14s
+        this.nextSpawn = 6000 + Math.random() * 8000;
       }
     }
   };
@@ -328,8 +340,9 @@
   var animId = null;
   var lastTime = 0;
 
+  // Reduced counts — space is mostly empty
   var isTouch = isTouchDevice;
-  var particleCount = isTouch ? 20 : 35;
+  var particleCount = isTouch ? 12 : 18;
   var cometCount = isTouch ? 2 : 3;
 
   function resize() {
@@ -352,14 +365,12 @@
 
       resize();
 
-      // Create particles
       particles = [];
       for (var i = 0; i < particleCount; i++) {
         particles.push(new Particle(canvas.width, canvas.height));
       }
       particles.sort(function (a, b) { return a.depth - b.depth; });
 
-      // Create comets
       comets = [];
       for (var j = 0; j < cometCount; j++) {
         comets.push(new Comet(canvas.width, canvas.height));
@@ -368,10 +379,8 @@
       lastTime = performance.now();
       animId = requestAnimationFrame(loop);
 
-      // Mouse tracking (desktop only)
       if (!isTouch) {
         window.addEventListener('mousemove', onMouseMove, { passive: true });
-        // Initialize lerp to center
         mouse.lx = canvas.width * 0.5;
         mouse.ly = canvas.height * 0.5;
       }
@@ -390,18 +399,15 @@
       var dt = Math.min(now - lastTime, 100);
       lastTime = now;
 
-      // Smooth mouse lerp
       updateMouseLerp();
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Update & draw particles (with parallax offset)
       for (var i = 0; i < particles.length; i++) {
         particles[i].update(dt, now);
         particles[i].draw(ctx);
       }
 
-      // Update & draw comets
       for (var j = 0; j < comets.length; j++) {
         comets[j].respawn(dt);
         comets[j].update(dt);
@@ -451,7 +457,6 @@
     var scrollY = 0;
     var mouseGridX = 0, mouseGridY = 0;
 
-    // Very subtle mouse effect on grid (0.002 multiplier = barely moves)
     if (!isTouch) {
       window.addEventListener('mousemove', function (e) {
         var cx = e.clientX - window.innerWidth * 0.5;
@@ -476,7 +481,6 @@
       }
     }
 
-    // Also update on mouse move for reactive feel
     function onGridMouseMove() {
       if (!ticking) {
         requestAnimationFrame(function () {
@@ -510,7 +514,6 @@
     window.addEventListener('mousemove', function (e) {
       var cx = e.clientX - window.innerWidth * 0.5;
       var cy = e.clientY - window.innerHeight * 0.5;
-      // Max 2px shift
       targetX = (cx / window.innerWidth) * 2;
       targetY = (cy / window.innerHeight) * 2;
     }, { passive: true });

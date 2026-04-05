@@ -32,6 +32,9 @@
     var(--atmosphere-grid-scroll-y, 0px)
   );
   will-change: transform;
+  /* Grid fades toward edges — coordinate system recedes into void */
+  -webkit-mask-image: radial-gradient(ellipse 60% 55% at 50% 50%, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.15) 50%, transparent 80%);
+  mask-image: radial-gradient(ellipse 60% 55% at 50% 50%, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.15) 50%, transparent 80%);
 }
 
 /* No secondary grid. Removed. */
@@ -53,7 +56,7 @@
 }
 
 /* ──────────────────────────────────────────────────────────────────────
-   3. VIGNETTE — edge darkening, center stays infinite
+   3. VIGNETTE — natural edge fall-off, feels like distance not overlay
    ────────────────────────────────────────────────────────────────────── */
 
 .korantis-vignette {
@@ -63,8 +66,10 @@
   z-index: 2;
   background: radial-gradient(
     ellipse at center,
-    transparent 55%,
-    rgba(0, 0, 0, 0.75) 100%
+    transparent 30%,
+    rgba(0, 0, 0, 0.15) 50%,
+    rgba(0, 0, 0, 0.55) 80%,
+    rgba(0, 0, 0, 0.85) 100%
   );
 }
 
