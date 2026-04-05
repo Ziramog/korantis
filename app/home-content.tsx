@@ -255,117 +255,25 @@ function IntroAnimation({ onDone }: { onDone: () => void }) {
 }
 
 // ─── Background Depth Layers ─────────────────────────────────────────
-// 4 fixed layers: grid (z-0), center glow (z-0.5), vignette (z-1), stars (z-1).
-// All pointer-events: none. Content z-index: 10+.
-
-// Generate 80 random stars with CSS custom properties
-function generateStars(count: number) {
-  const stars: Record<string, string>[] = [];
-  for (let i = 0; i < count; i++) {
-    const driftDx1 = (Math.random() * 6 - 3).toFixed(1);
-    const driftDy1 = (Math.random() * 8 - 4).toFixed(1);
-    const driftDx2 = (Math.random() * 4 - 2).toFixed(1);
-    const driftDy2 = (Math.random() * 4 - 2).toFixed(1);
-    const driftDx3 = (Math.random() * 4 - 2).toFixed(1);
-    const driftDy3 = (Math.random() * 6 - 3).toFixed(1);
-    stars.push({
-      '--star-x': `${(Math.random() * 100).toFixed(1)}%`,
-      '--star-y': `${(Math.random() * 100).toFixed(1)}%`,
-      '--star-size': `${(Math.random() * 1.5 + 0.5).toFixed(1)}px`,
-      '--star-opacity': `${(Math.random() * 0.25 + 0.05).toFixed(2)}`,
-      '--star-drift': `${(Math.random() * 20 + 20).toFixed(0)}s`,
-      '--star-delay': `${(Math.random() * -30).toFixed(0)}s`,
-      '--drift-dx1': `${driftDx1}px`,
-      '--drift-dy1': `${driftDy1}px`,
-      '--drift-dx2': `${driftDx2}px`,
-      '--drift-dy2': `${driftDy2}px`,
-      '--drift-dx3': `${driftDx3}px`,
-      '--drift-dy3': `${driftDy3}px`,
-    });
-  }
-  return stars;
-}
+// Single grid + vignette. Particles handled by space.js canvas.
+// No stars, no glows, no overlays.
 
 function BackgroundLayers() {
-  // Stars generated client-side only to avoid hydration mismatch (Math.random)
-  const [stars, setStars] = useState<Record<string, string>[]>([]);
-
-  useEffect(() => {
-    setStars(generateStars(60)); // reduced from 80 for cleaner space feel
-  }, []);
-
-  // Parallax shift on grid — very subtle, scroll-based
-  const gridRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    let ticking = false;
-    const onScroll = () => {
-      if (!gridRef.current) return;
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          const y = window.scrollY * 0.01;
-          gridRef.current!.style.backgroundPosition = `0 ${y}px`;
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
   return (
     <>
-      {/* Layer 1: Atmosphere grid (enhanced, from atmosphere.css) */}
+      {/* Layer 1: Atmosphere grid */}
       <div
         className="korantis-atmosphere-grid"
         aria-hidden="true"
       />
 
-      {/* Layer 1b: Original grid (kept for compatibility) */}
-      <div
-        ref={gridRef}
-        className="korantis-grid-bg"
-        aria-hidden="true"
-      />
-
-      {/* Layer 2: Center ambient glow */}
-      <div
-        className="korantis-center-glow"
-        aria-hidden="true"
-      />
-
-      {/* Layer 2b: Ambient light overlay (atmosphere.css) */}
-      <div
-        className="korantis-ambient-light"
-        aria-hidden="true"
-      />
-
-      {/* Layer 2c: Subtle violet tint */}
-      <div
-        className="korantis-ambient-violet"
-        aria-hidden="true"
-      />
-
-      {/* Layer 3: Vignette */}
+      {/* Layer 2: Vignette — edge darkening for depth */}
       <div
         className="korantis-vignette"
         aria-hidden="true"
       />
 
-      {/* Hero focal — soft radial pulse behind hero text */}
-      <div
-        className="korantis-hero-focal"
-        aria-hidden="true"
-      />
-
-      {/* Layer 4: Star field (60 particles, reduced) */}
-      <div className="korantis-star-field" aria-hidden="true">
-        {stars.map((s, i) => (
-          <span key={i} className="korantis-star" style={s} />
-        ))}
-      </div>
-
-      {/* Layer 1: Canvas particles (managed by space.js) — injected automatically */}
+      {/* Canvas particles (space.js) — auto-injected at z-index 1 */}
     </>
   );
 }
@@ -559,7 +467,7 @@ function Header({ menuOpen, onToggle }: HeaderProps) {
     <header className="fixed top-0 left-0 right-0 z-50 bg-canvas/80 backdrop-blur-md border-b border-border/50" role="banner">
       <div className="container flex items-center justify-between h-14">
         <a href="/" className="korantis-nav-logo" aria-label="Korantis home">
-          <img src="/korantisicon.svg" alt="Korantis" className="w-13 h-13" />
+          <img src="/korantisicon.svg" alt="Korantis" className="w-16 h-16" />
         </a>
 
         <nav className="hidden md:flex items-center gap-10" aria-label="Main navigation">

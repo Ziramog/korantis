@@ -1,21 +1,19 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════
- * KORANTIS — Space Atmosphere (Canvas Particles + Comets)
+ * KORANTIS — Space Atmosphere (Canvas Particles)
  * ═══════════════════════════════════════════════════════════════════════
- * Layered particle system with depth + directional comet motion.
+ * Subtle particle system with depth layers.
  *
  * Layers:
  *   1. Grid       — static + very slight scroll shift
- *   2. Particles  — 3 depth layers (far/near), slow drift, opacity pulse
- *   3. Comets     — 3–6 white streaks, diagonal motion, fade in/out
- *   4. Content    — top layer
+ *   2. Particles  — 3 depth layers (far/mid/near), slow drift
+ *   3. Content    — top layer
  *
  * Performance:
- *   • 30 particles on mobile, 55 on desktop
- *   • 1 comet on mobile, 3 on desktop
- *   • 3 distinct depth layers (far/mid/near) with sharp contrast
+ *   • 20 particles on mobile, 35 on desktop
+ *   • 3 distinct depth layers with contrast
+ *   • Pure white only — no warm tints
  *   • requestAnimationFrame driven, capped dt
- *   • No heavy glow, no mouse interaction
  *
  * Z-index: 1 (above grid, below content)
  * ═══════════════════════════════════════════════════════════════════════
@@ -76,17 +74,10 @@
     this.pulseSpeed = 0.0008 + Math.random() * 0.0015;
     this.pulsePhase = Math.random() * Math.PI * 2;
 
-    // Mostly pure white, slight warm tint on a few
-    var warmTint = Math.random() < 0.1;
-    if (warmTint) {
-      this.r = 225 + Math.floor(Math.random() * 30);
-      this.g = 215 + Math.floor(Math.random() * 25);
-      this.b = 205 + Math.floor(Math.random() * 25);
-    } else {
-      this.r = 255;
-      this.g = 255;
-      this.b = 255;
-    }
+    // Pure white only
+    this.r = 255;
+    this.g = 255;
+    this.b = 255;
   }
 
   Particle.prototype.update = function (dt, time) {
@@ -254,8 +245,7 @@
   var lastTime = 0;
 
   var isTouch = isTouchDevice;
-  var particleCount = isTouch ? 30 : 55;
-  var cometCount = isTouch ? 1 : 3;
+  var particleCount = isTouch ? 20 : 35;
 
   function resize() {
     if (!canvas) return;
@@ -284,12 +274,6 @@
       }
       particles.sort(function (a, b) { return a.depth - b.depth; });
 
-      // Create comets (inactive, will spawn on their own schedule)
-      comets = [];
-      for (var j = 0; j < cometCount; j++) {
-        comets.push(new Comet(canvas.width, canvas.height));
-      }
-
       lastTime = performance.now();
       animId = requestAnimationFrame(loop);
 
@@ -315,13 +299,6 @@
         particles[i].draw(ctx);
       }
 
-      // Update & draw comets
-      for (var j = 0; j < comets.length; j++) {
-        comets[j].respawn(dt);
-        comets[j].update(dt);
-        comets[j].draw(ctx);
-      }
-
       animId = requestAnimationFrame(loop);
     } catch (e) {
       console.error('KORANTIS space loop error:', e);
@@ -339,7 +316,6 @@
     canvas = null;
     ctx = null;
     particles = [];
-    comets = [];
   }
 
   function debounce(fn, delay) {
@@ -379,7 +355,6 @@
   }
 
   function initAll() {
-    console.log("KORANTIS DEBUG ACTIVE — logo=80px | hero focal=0.2 radial | grid debug overlay ON");
     init();
     initGridParallax();
   }

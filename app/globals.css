@@ -166,38 +166,7 @@ a {
   border-width: 0;
 }
 
-/* ── Depth Layer: Grid Background (secondary, minimal) ─────────────── */
-/* Kept for compatibility — very subtle, almost invisible */
-
-.korantis-grid-bg {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-  background-size: 100px 100px;
-}
-
-/* ── Depth Layer: Center Ambient Glow ────────────────────────────────
-   Very soft white light in center of screen. Creates depth and void feel.
-   z-index: 0 — same as grid, contributes to overall depth.
-   ─────────────────────────────────────────────────────────────────── */
-
-.korantis-center-glow {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(255, 255, 255, 0.01) 0%,
-    transparent 65%
-  );
-}
-
-/* ── Depth Layer: Vignette ─────────────────────────────────────────── */
+/* ── Depth Layer: Vignette (compatibility — handled by atmosphere.css) ── */
 
 .korantis-vignette {
   position: fixed;
@@ -206,52 +175,9 @@ a {
   z-index: 1;
   background: radial-gradient(
     ellipse at center,
-    transparent 40%,
-    rgba(0, 0, 0, 0.3) 100%
+    transparent 35%,
+    rgba(0, 0, 0, 0.35) 100%
   );
-}
-
-/* ── Depth Layer: Star Field ───────────────────────────────────────── */
-
-.korantis-star-field {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  overflow: hidden;
-}
-
-.korantis-star {
-  position: absolute;
-  width: var(--star-size, 1px);
-  height: var(--star-size, 1px);
-  background: rgba(255, 255, 255, var(--star-opacity, 0.15));
-  border-radius: 50%;
-  left: var(--star-x, 0%);
-  top: var(--star-y, 0%);
-  animation: korantis-drift var(--star-drift, 30s) ease-in-out infinite;
-  animation-delay: var(--star-delay, 0s);
-}
-
-@keyframes korantis-drift {
-  0%, 100% { transform: translate(0, 0); }
-  25% { transform: translate(var(--drift-dx1, 3px), var(--drift-dy1, -4px)); }
-  50% { transform: translate(var(--drift-dx2, -2px), var(--drift-dy2, -2px)); }
-  75% { transform: translate(var(--drift-dx3, 2px), var(--drift-dy3, 3px)); }
-}
-
-/* ── Loading Screen ────────────────────────────────────────────────── */
-
-@keyframes korantis-loader-letter {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes korantis-loader-bar {
-  0% { left: -100%; }
-  100% { left: 100%; }
 }
 
 /* ── Reduced Motion ─────────────────────────────────────────────────── */
