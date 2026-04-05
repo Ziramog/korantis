@@ -379,6 +379,7 @@
   }
 
   function initAll() {
+    console.log("KORANTIS DEBUG ACTIVE — logo=80px | hero focal=0.2 radial | grid debug overlay ON");
     init();
     initGridParallax();
   }

@@ -182,19 +182,14 @@
   will-change: opacity, transform;
 }
 
-/* Hero focal field — soft radial center behind hero text */
+/* Hero focal field — DEBUG: forced strong radial for visibility */
 .korantis-hero-focal {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 1;
-  opacity: 0.1;
-  background: radial-gradient(
-    ellipse 50% 45% at 50% 45%,
-    rgba(255, 255, 255, 0.06) 0%,
-    transparent 70%
-  );
-  animation: korantis-focal-pulse 8s ease-in-out infinite;
+  background: radial-gradient(circle at 50% 45%, rgba(255,255,255,0.2), transparent 60%) !important;
+  animation: none;
 }
 
 @keyframes korantis-focal-pulse {
@@ -245,24 +240,22 @@
 /* ──────────────────────────────────────────────────────────────────────
    7. LOGO — Inline SVG control
    ──────────────────────────────────────────────────────────────────────
-   Nav K icon: 52px, 0.95 opacity, subtle hover glow + scale
-   Full logo: 320px, for hero/about (optional future use)
-   Paths: #k-stem, #k-upper, #k-lower — animation-ready
+   DEBUG: forced values to confirm CSS is loading and taking effect.
    ────────────────────────────────────────────────────────────────────── */
 
 .korantis-nav-logo {
   display: inline-flex;
   align-items: center;
-  width: 52px;
-  height: 52px;
+  width: 80px !important;
+  height: 80px !important;
   color: #ffffff;
-  opacity: 0.95;
+  opacity: 1 !important;
   transition: opacity 0.3s ease, filter 0.3s ease, transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .korantis-nav-logo:hover {
   opacity: 1;
-  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.12));
+  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.3));
   transform: scale(1.05);
 }
 
@@ -270,4 +263,23 @@
   width: 320px;
   height: auto;
   color: #ffffff;
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   DEBUG — Force grid visibility, confirm CSS is loading
+   ────────────────────────────────────────────────────────────────────── */
+
+body::after {
+  content: 'DEBUG ACTIVE';
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  z-index: 9999;
+  color: #00ff88;
+  font-family: monospace;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  pointer-events: none;
+  text-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
 }
