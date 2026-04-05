@@ -1,0 +1,45 @@
+{
+  "source": {
+    "url": "https://www.hear.ai/",
+    "extractedAt": "2026-04-04T20:58:49.999Z",
+    "extractor": "dembrandt"
+  },
+  "colors": {
+    "palette": [],
+    "cssVariables": {}
+  },
+  "typography": {
+    "headingFont": "byrdRegular",
+    "bodyFont": "byrdRegular"
+  },
+  "spacing": {
+    "scale": [
+      "4px",
+      "8px",
+      "9.04px",
+      "9.6px",
+      "10px",
+      "12px",
+      "16px",
+      "24px",
+      "32px",
+      "40px",
+      "48px",
+      "64px",
+      "68px",
+      "72px",
+      "80px",
+      "100px",
+      "120px",
+      "128px",
+      "176px",
+      "239.75px"
+    ]
+  },
+  "radius": {
+    "scale": []
+  },
+  "shadows": {
+    "scale": []
+  }
+}

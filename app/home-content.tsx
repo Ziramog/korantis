@@ -530,8 +530,14 @@ function Header({ menuOpen, onToggle }: HeaderProps) {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-canvas/80 backdrop-blur-md border-b border-border/50" role="banner">
       <div className="container flex items-center justify-between h-14">
-        <a href="/" className="text-lg font-medium tracking-tight text-ink hover:opacity-70 transition-opacity">
-          Korantis
+        <a href="/" className="korantis-nav-logo" aria-label="Korantis home">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+            <g stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path id="k-stem" d="M16 8 L16 56" />
+              <path id="k-upper" d="M16 32 L48 8" />
+              <path id="k-lower" d="M16 32 L48 56" />
+            </g>
+          </svg>
         </a>
 
         <nav className="hidden md:flex items-center gap-10" aria-label="Main navigation">

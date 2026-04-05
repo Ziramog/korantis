@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 64" fill="none" aria-label="Korantis">
+  <!--
+    KORANTIS — Full Logo (K icon + wordmark)
+    K icon: left-aligned, 48×48, stroke-based for animation
+    Wordmark: "KORANTIS" text, set in system font stack
+  -->
+  <g id="korantis-k-icon" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Vertical stem: x = 16, y: 8 → 56 -->
+    <path id="k-stem" d="M16 8 L16 56" />
+    <!-- Upper diagonal -->
+    <path id="k-upper" d="M16 32 L48 8" />
+    <!-- Lower diagonal -->
+    <path id="k-lower" d="M16 32 L48 56" />
+  </g>
+  <text x="62" y="40" fill="currentColor" font-family="'Space Grotesk', 'Inter', sans-serif" font-size="28" font-weight="500" letter-spacing="0.08em">
+    KORANTIS
+  </text>
+</svg>

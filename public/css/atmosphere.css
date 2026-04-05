@@ -220,3 +220,32 @@
     transform: none;
   }
 }
+
+/* ──────────────────────────────────────────────────────────────────────
+   7. LOGO — Inline SVG control
+   ──────────────────────────────────────────────────────────────────────
+   Nav K icon: 42px, subtle, slight hover glow
+   Full logo: 320px, for hero/about (optional future use)
+   Paths: #k-stem, #k-upper, #k-lower — animation-ready
+   ────────────────────────────────────────────────────────────────────── */
+
+.korantis-nav-logo {
+  display: inline-flex;
+  align-items: center;
+  width: 42px;
+  height: 42px;
+  color: #ffffff;
+  opacity: 0.85;
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.korantis-nav-logo:hover {
+  opacity: 1;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.15));
+}
+
+.korantis-full-logo {
+  width: 320px;
+  height: auto;
+  color: #ffffff;
+}
