@@ -57,18 +57,19 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
       targetY = (e.clientY / h - 0.5) * 4;
     });
 
-    // Stars — tiny circular dots at varying depths
+    // Stars — tiny circular dots, forward motion (depth travel feel)
     type Star = {
       x: number;
       y: number;
       baseAlpha: number;
       size: number;
       layer: 'far' | 'mid' | 'near';
-      drift: number;
+      speed: number;
+      canStreak: boolean;
     };
 
     const stars: Star[] = [];
-    // Far stars — many, tiny, dim
+    // Far stars — many, tiny, dim, slow
     for (let i = 0; i < 80; i++) {
       stars.push({
         x: (i * 137.508) % w,
@@ -76,7 +77,8 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
         baseAlpha: 0.15 + (i % 5) * 0.05,
         size: 0.5 + (i % 3) * 0.25,
         layer: 'far',
-        drift: ((i * 3) % 7 - 3) / 20000,
+        speed: 0.02,
+        canStreak: false,
       });
     }
     // Mid stars — moderate
@@ -87,10 +89,11 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
         baseAlpha: 0.3 + (i % 4) * 0.08,
         size: 1 + (i % 3) * 0.3,
         layer: 'mid',
-        drift: ((i * 5) % 9 - 4) / 15000,
+        speed: 0.05,
+        canStreak: false,
       });
     }
-    // Near stars — fewer, brighter
+    // Near stars — fewer, brighter, fastest; ~10% can streak
     for (let i = 0; i < 12; i++) {
       stars.push({
         x: (i * 271.1) % w,
@@ -98,7 +101,8 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
         baseAlpha: 0.5 + (i % 3) * 0.15,
         size: 1.5 + (i % 2) * 0.5,
         layer: 'near',
-        drift: ((i * 7) % 11 - 5) / 12000,
+        speed: 0.12,
+        canStreak: i % 10 === 0,
       });
     }
 
@@ -137,6 +141,12 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
     let raf = 0;
     let lastTime = performance.now();
 
+    // Burst system — brief acceleration every 6–10s
+    let speedMultiplier = 1;
+    let nextBurstAt = 6000 + Math.random() * 4000;
+    let burstTimer = 0;
+    let burstActive = false;
+
     const loop = (now: number) => {
       const dt = Math.min(now - lastTime, 50);
       lastTime = now;
@@ -151,13 +161,32 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
       farX += (targetX - farX) * 0.03;
       farY += (targetY - farY) * 0.03;
 
+      // Burst timing
+      burstTimer += dt;
+      if (!burstActive && burstTimer > nextBurstAt) {
+        burstActive = true;
+        speedMultiplier = 2.5;
+        burstTimer = 0;
+      }
+      if (burstActive && burstTimer > 500) {
+        burstActive = false;
+        speedMultiplier = 1;
+        burstTimer = 0;
+        nextBurstAt = 6000 + Math.random() * 4000;
+      }
+
       const awakeBoost = awake ? 1.2 : 1;
 
       // Draw stars
       for (let s of stars) {
-        s.x += s.drift * awakeBoost;
-        if (s.x < -5) s.x = w + 5;
-        if (s.x > w + 5) s.x = -5;
+        // Forward motion only — no sideways drift
+        s.y += s.speed * awakeBoost * speedMultiplier;
+
+        // Reset when off bottom of screen
+        if (s.y > h + 5) {
+          s.y = -5;
+          s.x = Math.random() * w;
+        }
 
         let ox = 0;
         let oy = 0;
@@ -166,10 +195,23 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
         else { ox = nearX; oy = nearY; }
 
         const alpha = s.baseAlpha * (awake ? 1.6 : 1);
-        ctx.beginPath();
-        ctx.arc(s.x + ox, s.y + oy, s.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(200, 215, 255, ${alpha})`;
-        ctx.fill();
+        const px = s.x + ox;
+        const py = s.y + oy;
+
+        // Near stars: ~10% chance of hyperspace streak when awake
+        if (s.canStreak && awake && Math.random() < 0.1) {
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          ctx.lineTo(px, py - 6);
+          ctx.strokeStyle = `rgba(200, 215, 255, ${alpha * 0.6})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        } else {
+          ctx.beginPath();
+          ctx.arc(px, py, s.size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(200, 215, 255, ${alpha})`;
+          ctx.fill();
+        }
       }
 
       // Comet spawning
