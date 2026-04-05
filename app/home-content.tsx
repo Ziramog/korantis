@@ -53,8 +53,8 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
     let farY = 0;
 
     window.addEventListener('mousemove', (e) => {
-      targetX = (e.clientX / w - 0.5) * 8;
-      targetY = (e.clientY / h - 0.5) * 8;
+      targetX = (e.clientX / w - 0.5) * 4;
+      targetY = (e.clientY / h - 0.5) * 4;
     });
 
     // Stars — tiny circular dots at varying depths
@@ -69,36 +69,36 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
 
     const stars: Star[] = [];
     // Far stars — many, tiny, dim
-    for (let i = 0; i < 120; i++) {
+    for (let i = 0; i < 80; i++) {
       stars.push({
         x: (i * 137.508) % w,
         y: (i * 97.31) % h,
         baseAlpha: 0.15 + (i % 5) * 0.05,
         size: 0.5 + (i % 3) * 0.25,
         layer: 'far',
-        drift: ((i * 3) % 7 - 3) / 8000,
+        drift: ((i * 3) % 7 - 3) / 20000,
       });
     }
     // Mid stars — moderate
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 30; i++) {
       stars.push({
         x: (i * 193.7) % w,
         y: (i * 151.3) % h,
         baseAlpha: 0.3 + (i % 4) * 0.08,
         size: 1 + (i % 3) * 0.3,
         layer: 'mid',
-        drift: ((i * 5) % 9 - 4) / 6000,
+        drift: ((i * 5) % 9 - 4) / 15000,
       });
     }
     // Near stars — fewer, brighter
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 12; i++) {
       stars.push({
         x: (i * 271.1) % w,
         y: (i * 211.7) % h,
         baseAlpha: 0.5 + (i % 3) * 0.15,
         size: 1.5 + (i % 2) * 0.5,
         layer: 'near',
-        drift: ((i * 7) % 11 - 5) / 4000,
+        drift: ((i * 7) % 11 - 5) / 12000,
       });
     }
 
@@ -115,7 +115,7 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
     };
 
     const comets: Comet[] = [];
-    let nextCometAt = 3000 + Math.random() * 5000;
+    let nextCometAt = 6000 + Math.random() * 8000;
     let cometTimer = 0;
 
     const spawnComet = (): Comet => {
@@ -151,7 +151,7 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
       farX += (targetX - farX) * 0.03;
       farY += (targetY - farY) * 0.03;
 
-      const awakeBoost = awake ? 1.8 : 1;
+      const awakeBoost = awake ? 1.2 : 1;
 
       // Draw stars
       for (let s of stars) {
@@ -174,7 +174,7 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
 
       // Comet spawning
       cometTimer += dt;
-      if (cometTimer > nextCometAt && comets.filter(c => c.active).length < 2) {
+      if (cometTimer > nextCometAt && comets.filter(c => c.active).length < 1) {
         comets.push(spawnComet());
         cometTimer = 0;
         nextCometAt = 4000 + Math.random() * 8000;
