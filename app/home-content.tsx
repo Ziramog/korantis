@@ -553,7 +553,7 @@ function Header({ menuOpen, onToggle }: HeaderProps) {
     <header className="fixed top-0 left-0 right-0 z-50 bg-canvas/80 backdrop-blur-md border-b border-border/50" role="banner">
       <div className="container flex items-center justify-between h-14">
         <a href="/" className="korantis-nav-logo" aria-label="Korantis home">
-          <KLogoIcon />
+          <img src="/korantisicon.svg" alt="Korantis" className="w-10 h-10" />
         </a>
 
         <nav className="hidden md:flex items-center gap-10" aria-label="Main navigation">
