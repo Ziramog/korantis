@@ -11,11 +11,16 @@
  *
  * Performance:
  *   • 20 particles on mobile, 35 on desktop
+ *   • 3 comets on desktop, 2 on mobile
  *   • 3 distinct depth layers with contrast
  *   • Pure white only — no warm tints
  *   • requestAnimationFrame driven, capped dt
  *
- * Z-index: 1 (above grid, below content)
+ * Z-index:
+ *   grid     → 0
+ *   particles → 1
+ *   comets   → 2
+ *   content  → 10+
  * ═══════════════════════════════════════════════════════════════════════
  */
 
@@ -246,6 +251,7 @@
 
   var isTouch = isTouchDevice;
   var particleCount = isTouch ? 20 : 35;
+  var cometCount = isTouch ? 2 : 3;
 
   function resize() {
     if (!canvas) return;
@@ -274,6 +280,12 @@
       }
       particles.sort(function (a, b) { return a.depth - b.depth; });
 
+      // Create comets (staggered spawn times)
+      comets = [];
+      for (var j = 0; j < cometCount; j++) {
+        comets.push(new Comet(canvas.width, canvas.height));
+      }
+
       lastTime = performance.now();
       animId = requestAnimationFrame(loop);
 
@@ -299,6 +311,13 @@
         particles[i].draw(ctx);
       }
 
+      // Update & draw comets
+      for (var j = 0; j < comets.length; j++) {
+        comets[j].respawn(dt);
+        comets[j].update(dt);
+        comets[j].draw(ctx);
+      }
+
       animId = requestAnimationFrame(loop);
     } catch (e) {
       console.error('KORANTIS space loop error:', e);
@@ -316,6 +335,7 @@
     canvas = null;
     ctx = null;
     particles = [];
+    comets = [];
   }
 
   function debounce(fn, delay) {

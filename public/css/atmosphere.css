@@ -7,7 +7,8 @@
  *
  * Depth z-index map:
  *   0    — grid background
- *   1    — particles canvas, vignette
+ *   1    — particles canvas (includes comets, drawn after)
+ *   2    — vignette (edge darkening)
  *   10+  — content (main)
  *   100  — intro overlay
  * ═══════════════════════════════════════════════════════════════════════
@@ -50,18 +51,18 @@
 }
 
 /* ──────────────────────────────────────────────────────────────────────
-   3. VIGNETTE — darken edges, keep center clean (negative space focus)
+   3. VIGNETTE — edge darkening, center stays clean
    ────────────────────────────────────────────────────────────────────── */
 
 .korantis-vignette {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 1;
+  z-index: 2;
   background: radial-gradient(
     ellipse at center,
-    transparent 35%,
-    rgba(0, 0, 0, 0.35) 100%
+    transparent 40%,
+    rgba(0, 0, 0, 0.6) 100%
   );
 }
 
