@@ -93,9 +93,6 @@ export default function RootLayout({
       <body className="min-h-screen antialiased">
         {children}
         <script src="/js/interactions.js" defer />
-        {/* Intro animation — SVG mathematical curve */}
-        <script src="/js/intro.js" defer />
-        {/* Space atmosphere — particle depth system */}
         <script src="/js/space.js" defer />
       </body>
     </html>

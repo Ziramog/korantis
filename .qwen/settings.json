@@ -13,7 +13,10 @@
       "Bash(findstr *)",
       "Bash(rmdir *)",
       "Bash(npm cache *)",
-      "Bash(wmic *)"
+      "Bash(wmic *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push)"
     ]
   },
   "$version": 3

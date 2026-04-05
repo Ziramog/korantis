@@ -175,8 +175,8 @@ a {
   z-index: 2;
   background: radial-gradient(
     ellipse at center,
-    transparent 40%,
-    rgba(0, 0, 0, 0.6) 100%
+    transparent 55%,
+    rgba(0, 0, 0, 0.75) 100%
   );
 }
 

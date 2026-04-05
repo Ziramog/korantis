@@ -123,6 +123,9 @@
     var w = this.canvasW;
     var h = this.canvasH;
 
+    // 1 in 6 comets is a "rare" longer, brighter comet
+    var isRare = Math.random() < 0.17;
+
     // Random diagonal direction: mostly top-left → bottom-right
     var fromLeft = Math.random() < 0.6;
     var fromTop = Math.random() < 0.7;
@@ -131,32 +134,35 @@
       // Top-left → bottom-right (most common)
       this.x = -20 + Math.random() * w * 0.3;
       this.y = -20 + Math.random() * h * 0.2;
-      this.vx = 0.12 + Math.random() * 0.08;
-      this.vy = 0.08 + Math.random() * 0.06;
+      this.vx = 0.08 + Math.random() * 0.05;
+      this.vy = 0.05 + Math.random() * 0.04;
     } else if (fromLeft && !fromTop) {
       // Bottom-left → top-right
       this.x = -20 + Math.random() * w * 0.3;
       this.y = h * 0.6 + Math.random() * h * 0.3;
-      this.vx = 0.1 + Math.random() * 0.07;
-      this.vy = -(0.05 + Math.random() * 0.05);
+      this.vx = 0.07 + Math.random() * 0.05;
+      this.vy = -(0.03 + Math.random() * 0.04);
     } else {
       // Top → bottom (vertical-ish)
       this.x = Math.random() * w;
       this.y = -20;
-      this.vx = (Math.random() - 0.5) * 0.04;
-      this.vy = 0.06 + Math.random() * 0.06;
+      this.vx = (Math.random() - 0.5) * 0.03;
+      this.vy = 0.04 + Math.random() * 0.04;
     }
 
-    // Slight curve via acceleration
-    this.ax = (Math.random() - 0.5) * 0.00003;
-    this.ay = (Math.random() - 0.5) * 0.00002;
+    // Smoother curve via gentle acceleration
+    this.ax = (Math.random() - 0.5) * 0.00004;
+    this.ay = (Math.random() - 0.5) * 0.00003;
 
-    this.length = 18 + Math.random() * 25; // streak length in px
+    // Trail length: +30% vs previous (24-56px instead of 18-43px)
+    this.length = isRare ? 50 + Math.random() * 30 : 24 + Math.random() * 32;
     this.opacity = 0;
-    this.maxOpacity = 0.15 + Math.random() * 0.2; // subtle, not flashy
-    this.phase = 'fade-in'; // fade-in → active → fade-out
-    this.fadeSpeed = 0.0004 + Math.random() * 0.0003;
-    this.activeDuration = 2500 + Math.random() * 3000;
+    // Rare comets slightly brighter
+    this.maxOpacity = isRare ? 0.3 + Math.random() * 0.1 : 0.12 + Math.random() * 0.12;
+    this.phase = 'fade-in';
+    this.fadeSpeed = 0.0003 + Math.random() * 0.0002;
+    // Longer active duration for longer trail
+    this.activeDuration = isRare ? 5000 + Math.random() * 4000 : 3000 + Math.random() * 3000;
     this.activeTimer = 0;
     this.alive = true;
   };
@@ -233,8 +239,8 @@
       this.nextSpawn -= dt;
       if (this.nextSpawn <= 0) {
         this.spawn();
-        // Randomize next spawn after this one dies
-        this.nextSpawn = 4000 + Math.random() * 8000; // 4–12s gap
+        // Reduced frequency: 6–14s gap between comets
+        this.nextSpawn = 6000 + Math.random() * 8000;
       }
     }
   };

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import type { ContactFormData } from '@/lib/types';
 
@@ -15,244 +15,6 @@ const organizationSchema = {
   url: siteUrl,
   description: 'Korantis designs operational intelligence systems for companies that scale.',
 };
-
-// ─── Mathematical K Construction (SVG) ───────────────────────────────
-// The letter K is constructed from 3 mathematical functions:
-//   1. Vertical stem:  x = c          (drawn top→bottom, 0.8s)
-//   2. Upper diagonal:  y =  a(x - x₀) (drawn center→out, 1.2s)
-//   3. Lower diagonal:  y = -a(x - x₀) (drawn center→out, 1.2s)
-// Micro-jitter → stabilize → fade → hero enters
-
-// K geometry
-const VIEW_W = 200;
-const VIEW_H = 240;
-const STEM_X = 55;
-const STEM_TOP = 20;
-const STEM_BOT = 220;
-const JUNCTION_Y = 120;
-const UPPER_END = { x: 160, y: 25 };
-const LOWER_END = { x: 160, y: 215 };
-const JUNCTION = { x: STEM_X, y: JUNCTION_Y };
-
-function linePath(x1: number, y1: number, x2: number, y2: number): string {
-  return `M ${x1.toFixed(2)} ${y1.toFixed(2)} L ${x2.toFixed(2)} ${y2.toFixed(2)}`;
-}
-
-function easeOutCubic(t: number): number {
-  return 1 - Math.pow(1 - t, 3);
-}
-
-function IntroAnimation({ onDone }: { onDone: () => void }) {
-  const vPathRef = useRef<SVGPathElement>(null);
-  const uPathRef = useRef<SVGPathElement>(null);
-  const lPathRef = useRef<SVGPathElement>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
-  const [phase, setPhase] = useState<'draw-v' | 'draw-diag' | 'jitter' | 'pause' | 'curve-fade' | 'overlay-fade' | 'done'>('draw-v');
-
-  useEffect(() => {
-    const vPath = vPathRef.current;
-    const uPath = uPathRef.current;
-    const lPath = lPathRef.current;
-    const svg = svgRef.current;
-    if (!vPath || !uPath || !lPath) return;
-
-    const vLen = vPath.getTotalLength();
-    const uLen = uPath.getTotalLength();
-    const lLen = lPath.getTotalLength();
-
-    // Initialize all hidden
-    [vPath, uPath, lPath].forEach((p) => {
-      p.style.strokeDasharray = String(p.getTotalLength());
-      p.style.strokeDashoffset = String(p.getTotalLength());
-      p.style.opacity = '0';
-    });
-
-    // Camera approach
-    if (svg) {
-      svg.style.transform = 'scale(0.92)';
-      svg.style.transformOrigin = 'center center';
-      svg.style.transition = 'transform 1.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          svg.style.transform = 'scale(1)';
-        });
-      });
-    }
-
-    const VERTICAL_DURATION = 800;
-    const DIAGONAL_DURATION = 1200;
-    const JITTER_DURATION = 400;
-    const PAUSE_DELAY = 300;
-    const CURVE_FADE_DURATION = 600;
-    const OVERLAY_FADE_DURATION = 700;
-
-    // Capture refs into locals that nested functions can safely use
-    const _vPath = vPath;
-    const _uPath = uPath;
-    const _lPath = lPath;
-    const _vLen = vLen;
-    const _uLen = uLen;
-    const _lLen = lLen;
-
-    // ── Phase 1: Vertical stem ──
-    const vertStart = performance.now();
-
-    function drawVert(now: number) {
-      const elapsed = now - vertStart;
-      const progress = Math.min(elapsed / VERTICAL_DURATION, 1);
-      const eased = easeOutCubic(progress);
-      _vPath.style.opacity = String(0.6 + eased * 0.3);
-      _vPath.style.strokeDashoffset = String(_vLen * (1 - eased));
-
-      if (progress < 1) {
-        requestAnimationFrame(drawVert);
-      } else {
-        _vPath.style.strokeDashoffset = '0';
-        _vPath.style.opacity = '0.9';
-        setPhase('draw-diag');
-        drawDiag();
-      }
-    }
-
-    // ── Phase 2: Diagonals ──
-    function drawDiag() {
-      const diagStart = performance.now();
-
-      function diagFrame() {
-        const now = performance.now();
-        const elapsed = now - diagStart;
-        const progress = Math.min(elapsed / DIAGONAL_DURATION, 1);
-        const eased = easeOutCubic(progress);
-
-        _uPath.style.opacity = String(0.4 + eased * 0.5);
-        _lPath.style.opacity = String(0.4 + eased * 0.5);
-        _uPath.style.strokeDashoffset = String(_uLen * (1 - eased));
-        _lPath.style.strokeDashoffset = String(_lLen * (1 - eased));
-
-        if (progress < 1) {
-          requestAnimationFrame(diagFrame);
-        } else {
-          _uPath.style.strokeDashoffset = '0';
-          _lPath.style.strokeDashoffset = '0';
-          _uPath.style.opacity = '0.9';
-          _lPath.style.opacity = '0.9';
-          setPhase('jitter');
-          startJitter();
-        }
-      }
-
-      requestAnimationFrame(diagFrame);
-    }
-
-    // ── Phase 3: Micro-jitter → stabilize ──
-    const jitterStart = Date.now();
-
-    function startJitter() {
-      function jitterFrame() {
-        const elapsed = Date.now() - jitterStart;
-        if (elapsed >= JITTER_DURATION) {
-          // Clear jitter
-          [_vPath, _uPath, _lPath].forEach((p) => { p.style.transform = ''; });
-          setPhase('pause');
-          setTimeout(() => {
-            setPhase('curve-fade');
-            fadeCurve();
-          }, PAUSE_DELAY);
-          return;
-        }
-
-        const decay = Math.exp(-elapsed / (JITTER_DURATION * 0.4));
-        const jitterAmt = 0.8 * decay;
-
-        [_vPath, _uPath, _lPath].forEach((p) => {
-          const dx = (Math.random() - 0.5) * jitterAmt * 2;
-          const dy = (Math.random() - 0.5) * jitterAmt * 2;
-          p.style.transform = `translate(${dx.toFixed(2)}px, ${dy.toFixed(2)}px)`;
-        });
-
-        requestAnimationFrame(jitterFrame);
-      }
-
-      requestAnimationFrame(jitterFrame);
-    }
-
-    // ── Phase 4: Fade ──
-    function fadeCurve() {
-      [_vPath, _uPath, _lPath].forEach((p) => {
-        p.style.transition = `opacity ${CURVE_FADE_DURATION}ms ease-out`;
-        p.style.opacity = '0';
-      });
-
-      setTimeout(() => {
-        setPhase('overlay-fade');
-        setTimeout(() => {
-          setPhase('done');
-          onDone();
-        }, OVERLAY_FADE_DURATION);
-      }, CURVE_FADE_DURATION);
-    }
-
-    requestAnimationFrame(drawVert);
-  }, [onDone]);
-
-  // K size — fixed default to avoid hydration mismatch, updated after mount
-  const [kSize, setKSize] = useState(280);
-  useEffect(() => {
-    setKSize(Math.min(280, window.innerWidth * 0.35));
-  }, []);
-
-  const letters = 'KORANTIS'.split('');
-
-  if (phase === 'done') return null;
-
-  const overlayOpacity = phase === 'overlay-fade' ? 0 : 1;
-  const kHeight = kSize * VIEW_H / VIEW_W;
-
-  return (
-    <div
-      className="korantis-intro-overlay"
-      style={{ opacity: overlayOpacity }}
-      aria-hidden="true"
-    >
-      {/* KORANTIS label */}
-      <div className="korantis-intro-label" aria-label="KORANTIS">
-        {letters.map((letter, i) => (
-          <span key={i} className="letter" style={{ animationDelay: `${0.08 * i}s` }}>
-            {letter}
-          </span>
-        ))}
-      </div>
-
-      {/* SVG K construction */}
-      <svg
-        ref={svgRef}
-        viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-        style={{ width: `${kSize}px`, height: `${kHeight}px` }}
-        role="img"
-        aria-label="Mathematical K construction"
-      >
-        {/* 1. Vertical stem: x = constant */}
-        <path
-          ref={vPathRef}
-          d={linePath(STEM_X, STEM_TOP, STEM_X, STEM_BOT)}
-          className="korantis-intro-curve"
-        />
-        {/* 2. Upper diagonal: y = a(x - x₀) */}
-        <path
-          ref={uPathRef}
-          d={linePath(JUNCTION.x, JUNCTION.y, UPPER_END.x, UPPER_END.y)}
-          className="korantis-intro-curve"
-        />
-        {/* 3. Lower diagonal: y = -a(x - x₀) */}
-        <path
-          ref={lPathRef}
-          d={linePath(JUNCTION.x, JUNCTION.y, LOWER_END.x, LOWER_END.y)}
-          className="korantis-intro-curve"
-        />
-      </svg>
-    </div>
-  );
-}
 
 // ─── Background Depth Layers ─────────────────────────────────────────
 // Single grid + vignette. Particles handled by space.js canvas.
@@ -467,7 +229,7 @@ function Header({ menuOpen, onToggle }: HeaderProps) {
     <header className="fixed top-0 left-0 right-0 z-50 bg-canvas/80 backdrop-blur-md border-b border-border/50" role="banner">
       <div className="container flex items-center justify-between h-14">
         <a href="/" className="korantis-nav-logo" aria-label="Korantis home">
-          <img src="/korantisicon.svg" alt="Korantis" className="w-16 h-16" />
+          <img src="/korantisicon.svg" alt="Korantis" className="w-21 h-21" />
         </a>
 
         <nav className="hidden md:flex items-center gap-10" aria-label="Main navigation">
@@ -522,7 +284,7 @@ function HeroSection() {
             </p>
           </div>
 
-          <h1 id="hero-heading" className="text-balance" style={{ fontSize: 'clamp(2.25rem, 5vw, 3.5rem)', lineHeight: 1.1, letterSpacing: '-0.03em', fontWeight: 600 }}>
+          <h1 id="hero-heading" className="text-balance" style={{ fontSize: 'clamp(2.5rem, 5.5vw, 4rem)', lineHeight: 1.05, letterSpacing: '-0.03em', fontWeight: 700 }}>
             We build systems<br />that run companies.
           </h1>
 
@@ -778,51 +540,20 @@ function Footer() {
 
 export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [intro, setIntro] = useState(true);
-  const [fading, setFading] = useState(false);
-  const [heroVisible, setHeroVisible] = useState(false);
-
-  const handleIntroDone = useCallback(() => {
-    setFading(true);
-    setTimeout(() => {
-      setIntro(false);
-      // Trigger hero fade in with slight upward motion
-      setHeroVisible(true);
-    }, 700);
-  }, []);
 
   return (
-    <>
-      {intro && (
-        <div
-          className="fixed inset-0 z-[100] transition-opacity duration-700"
-          style={{ opacity: fading ? 0 : 1, pointerEvents: fading ? 'none' : 'auto' }}
-        >
-          <IntroAnimation onDone={handleIntroDone} />
-        </div>
-      )}
-      <main id="main-content" tabIndex={-1} style={{ position: 'relative', zIndex: 10 }}>
-        <BackgroundLayers />
-        <SchemaScript />
-        <Header menuOpen={menuOpen} onToggle={useCallback(() => setMenuOpen((p) => !p), [])} />
-        <div
-          className="korantis-hero-entry"
-          style={{
-            opacity: heroVisible ? 1 : 0,
-            transform: heroVisible ? 'translateY(0)' : 'translateY(12px)',
-            transition: 'opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s',
-          }}
-        >
-          <HeroSection />
-          <ProblemSection />
-          <LayersSection />
-          <OutcomeSection />
-          <AboutSection />
-          <ContactSection />
-          <Footer />
-        </div>
-      </main>
-    </>
+    <main id="main-content" tabIndex={-1} style={{ position: 'relative', zIndex: 10 }}>
+      <BackgroundLayers />
+      <SchemaScript />
+      <Header menuOpen={menuOpen} onToggle={useCallback(() => setMenuOpen((p) => !p), [])} />
+      <HeroSection />
+      <ProblemSection />
+      <LayersSection />
+      <OutcomeSection />
+      <AboutSection />
+      <ContactSection />
+      <Footer />
+    </main>
   );
 }
 
