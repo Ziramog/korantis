@@ -1,20 +1,20 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════
- * KORANTIS — Space Atmosphere (Canvas Particles)
+ * KORANTIS — Space Atmosphere (Interactive Canvas Particles)
  * ═══════════════════════════════════════════════════════════════════════
- * Subtle particle system with depth layers.
+ * Subtle particle system that responds to the user.
  *
- * Layers:
- *   1. Grid       — static + very slight scroll shift
- *   2. Particles  — 3 depth layers (far/mid/near), slow drift
- *   3. Content    — top layer
+ * Behavior:
+ *   • Mouse parallax — layers shift subtly with cursor
+ *   • Particle repulsion — near cursor, particles gently shift
+ *   • Comet awareness — occasional comet biases toward mouse direction
+ *   • Grid micro-parallax — barely moves with mouse
  *
  * Performance:
  *   • 20 particles on mobile, 35 on desktop
  *   • 3 comets on desktop, 2 on mobile
- *   • 3 distinct depth layers with contrast
- *   • Pure white only — no warm tints
- *   • requestAnimationFrame driven, capped dt
+ *   • requestAnimationFrame + lerp smoothing
+ *   • No touch effects on mobile
  *
  * Z-index:
  *   grid     → 0
@@ -44,24 +44,40 @@
   if (document.querySelector('.korantis-space-canvas')) return;
 
   /* ──────────────────────────────────────────────────────────────────
-     PARTICLE — small drifting dots with depth layers
-
-     3 distinct layers:
-       Layer 0 (far)  — 50% of particles, tiny, very slow, dim
-       Layer 1 (mid)  — 30% of particles, medium, slow
-       Layer 2 (near) — 20% of particles, slightly larger, brighter
+     MOUSE — lerp-smoothed position for reactive behavior
      ────────────────────────────────────────────────────────────────── */
+
+  var mouse = { x: 0, y: 0, lx: 0, ly: 0, active: false };
+  var PARALLAX_LERP = 0.03; // smooth interpolation factor
+
+  function onMouseMove(e) {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    mouse.active = true;
+  }
+
+  function updateMouseLerp() {
+    if (!mouse.active) return;
+    mouse.lx += (mouse.x - mouse.lx) * PARALLAX_LERP;
+    mouse.ly += (mouse.y - mouse.ly) * PARALLAX_LERP;
+  }
+
+  /* ──────────────────────────────────────────────────────────────────
+     PARTICLE — small drifting dots with depth layers
+     ────────────────────────────────────────────────────────────────── */
+
+  var REPEL_RADIUS = 80;
+  var REPEL_FORCE = 0.3;
 
   function Particle(canvasW, canvasH) {
     // 50% far, 30% mid, 20% near
     var r = Math.random();
     this.depth = r < 0.5 ? 0 : r < 0.8 ? 1 : 2;
 
-    // Sharper contrast between layers
     var depthConfig = [
-      { sizeMin: 0.2, sizeMax: 0.5, speedMul: 0.15, opacityMin: 0.03, opacityMax: 0.08 },
-      { sizeMin: 0.4, sizeMax: 0.7, speedMul: 0.35, opacityMin: 0.06, opacityMax: 0.14 },
-      { sizeMin: 0.6, sizeMax: 1.0, speedMul: 0.6,  opacityMin: 0.1,  opacityMax: 0.22 },
+      { sizeMin: 0.2, sizeMax: 0.5, speedMul: 0.15, opacityMin: 0.03, opacityMax: 0.08, parallaxMul: 0.015 },
+      { sizeMin: 0.4, sizeMax: 0.7, speedMul: 0.35, opacityMin: 0.06, opacityMax: 0.14, parallaxMul: 0.03  },
+      { sizeMin: 0.6, sizeMax: 1.0, speedMul: 0.6,  opacityMin: 0.1,  opacityMax: 0.22, parallaxMul: 0.06  },
     ];
 
     var cfg = depthConfig[this.depth];
@@ -79,6 +95,11 @@
     this.pulseSpeed = 0.0008 + Math.random() * 0.0015;
     this.pulsePhase = Math.random() * Math.PI * 2;
 
+    // Parallax offset (mouse reactive)
+    this.parallaxMul = cfg.parallaxMul;
+    this.px = 0;
+    this.py = 0;
+
     // Pure white only
     this.r = 255;
     this.g = 255;
@@ -86,11 +107,44 @@
   }
 
   Particle.prototype.update = function (dt, time) {
+    // Natural drift
     this.x += this.vx * dt;
     this.y += this.vy * dt;
 
+    // Opacity pulse
     this.opacity = this.baseOpacity + Math.sin(time * this.pulseSpeed + this.pulsePhase) * 0.025;
 
+    // Mouse parallax (different per depth layer)
+    if (mouse.active) {
+      var cx = mouse.lx - canvas.width * 0.5;
+      var cy = mouse.ly - canvas.height * 0.5;
+      this.px = cx * this.parallaxMul;
+      this.py = cy * this.parallaxMul;
+    } else {
+      this.px *= 0.95;
+      this.py *= 0.95;
+    }
+
+    // Repulsion near cursor
+    if (mouse.active) {
+      var dx = this.x - mouse.x;
+      var dy = this.y - mouse.y;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < REPEL_RADIUS && dist > 0) {
+        var force = (1 - dist / REPEL_RADIUS) * REPEL_FORCE;
+        this.vx += (dx / dist) * force * 0.01;
+        this.vy += (dy / dist) * force * 0.01;
+        // Dampen back to natural speed
+        var maxDrift = 0.08;
+        var spd = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+        if (spd > maxDrift) {
+          this.vx = (this.vx / spd) * maxDrift;
+          this.vy = (this.vy / spd) * maxDrift;
+        }
+      }
+    }
+
+    // Wrap around edges
     var margin = 10;
     if (this.x < -margin) this.x = canvas.width + margin;
     if (this.x > canvas.width + margin) this.x = -margin;
@@ -99,69 +153,92 @@
   };
 
   Particle.prototype.draw = function (ctx) {
+    var drawX = this.x + this.px;
+    var drawY = this.y + this.py;
     ctx.beginPath();
-    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.arc(drawX, drawY, this.size, 0, Math.PI * 2);
     ctx.fillStyle =
       'rgba(' + this.r + ',' + this.g + ',' + this.b + ',' + this.opacity + ')';
     ctx.fill();
   };
 
   /* ──────────────────────────────────────────────────────────────────
-     COMET — directional white streak, diagonal/curved, fade in → move → fade out
+     COMET — directional white streak, fade in → move → fade out
+     Spawns with slight bias toward mouse when available.
      ────────────────────────────────────────────────────────────────── */
 
   function Comet(canvasW, canvasH) {
     this.alive = false;
     this.canvasW = canvasW;
     this.canvasH = canvasH;
-
-    // Randomize initial spawn time — stagger comets
-    this.nextSpawn = Math.random() * 5000 + 2000; // 2–7s before first
+    this.nextSpawn = Math.random() * 5000 + 3000;
   }
 
   Comet.prototype.spawn = function () {
     var w = this.canvasW;
     var h = this.canvasH;
-
-    // 1 in 6 comets is a "rare" longer, brighter comet
     var isRare = Math.random() < 0.17;
 
-    // Random diagonal direction: mostly top-left → bottom-right
-    var fromLeft = Math.random() < 0.6;
-    var fromTop = Math.random() < 0.7;
+    // 1 in 4 comets biases toward mouse direction
+    var useMouseBias = mouse.active && Math.random() < 0.25;
 
-    if (fromLeft && fromTop) {
-      // Top-left → bottom-right (most common)
-      this.x = -20 + Math.random() * w * 0.3;
-      this.y = -20 + Math.random() * h * 0.2;
-      this.vx = 0.08 + Math.random() * 0.05;
-      this.vy = 0.05 + Math.random() * 0.04;
-    } else if (fromLeft && !fromTop) {
-      // Bottom-left → top-right
-      this.x = -20 + Math.random() * w * 0.3;
-      this.y = h * 0.6 + Math.random() * h * 0.3;
-      this.vx = 0.07 + Math.random() * 0.05;
-      this.vy = -(0.03 + Math.random() * 0.04);
+    if (useMouseBias) {
+      // Spawn from edge, bias direction toward mouse
+      var edge = Math.floor(Math.random() * 4); // 0=top, 1=right, 2=bottom, 3=left
+      if (edge === 0) {
+        this.x = Math.random() * w;
+        this.y = -10;
+      } else if (edge === 1) {
+        this.x = w + 10;
+        this.y = Math.random() * h;
+      } else if (edge === 2) {
+        this.x = Math.random() * w;
+        this.y = h + 10;
+      } else {
+        this.x = -10;
+        this.y = Math.random() * h;
+      }
+
+      // Direction toward mouse (with noise)
+      var targetX = mouse.lx + (Math.random() - 0.5) * 300;
+      var targetY = mouse.ly + (Math.random() - 0.5) * 300;
+      var angle = Math.atan2(targetY - this.y, targetX - this.x);
+      var speed = 0.06 + Math.random() * 0.04;
+      this.vx = Math.cos(angle) * speed;
+      this.vy = Math.sin(angle) * speed;
     } else {
-      // Top → bottom (vertical-ish)
-      this.x = Math.random() * w;
-      this.y = -20;
-      this.vx = (Math.random() - 0.5) * 0.03;
-      this.vy = 0.04 + Math.random() * 0.04;
+      // Standard diagonal spawn
+      var fromLeft = Math.random() < 0.6;
+      var fromTop = Math.random() < 0.7;
+
+      if (fromLeft && fromTop) {
+        this.x = -20 + Math.random() * w * 0.3;
+        this.y = -20 + Math.random() * h * 0.2;
+        this.vx = 0.08 + Math.random() * 0.05;
+        this.vy = 0.05 + Math.random() * 0.04;
+      } else if (fromLeft && !fromTop) {
+        this.x = -20 + Math.random() * w * 0.3;
+        this.y = h * 0.6 + Math.random() * h * 0.3;
+        this.vx = 0.07 + Math.random() * 0.05;
+        this.vy = -(0.03 + Math.random() * 0.04);
+      } else {
+        this.x = Math.random() * w;
+        this.y = -20;
+        this.vx = (Math.random() - 0.5) * 0.03;
+        this.vy = 0.04 + Math.random() * 0.04;
+      }
     }
 
     // Smoother curve via gentle acceleration
     this.ax = (Math.random() - 0.5) * 0.00004;
     this.ay = (Math.random() - 0.5) * 0.00003;
 
-    // Trail length: +30% vs previous (24-56px instead of 18-43px)
+    // Trail length: normal 24-56px, rare 50-80px
     this.length = isRare ? 50 + Math.random() * 30 : 24 + Math.random() * 32;
     this.opacity = 0;
-    // Rare comets slightly brighter
     this.maxOpacity = isRare ? 0.3 + Math.random() * 0.1 : 0.12 + Math.random() * 0.12;
     this.phase = 'fade-in';
     this.fadeSpeed = 0.0003 + Math.random() * 0.0002;
-    // Longer active duration for longer trail
     this.activeDuration = isRare ? 5000 + Math.random() * 4000 : 3000 + Math.random() * 3000;
     this.activeTimer = 0;
     this.alive = true;
@@ -208,18 +285,15 @@
   Comet.prototype.draw = function (ctx) {
     if (!this.alive || this.opacity <= 0) return;
 
-    // Direction vector for streak
     var speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
     if (speed < 0.0001) return;
 
     var nx = this.vx / speed;
     var ny = this.vy / speed;
 
-    // Streak: line from tail to head
     var tailX = this.x - nx * this.length;
     var tailY = this.y - ny * this.length;
 
-    // Gradient along streak for trailing fade
     var grad = ctx.createLinearGradient(tailX, tailY, this.x, this.y);
     grad.addColorStop(0, 'rgba(255, 255, 255, 0)');
     grad.addColorStop(0.6, 'rgba(255, 255, 255, ' + (this.opacity * 0.5) + ')');
@@ -239,8 +313,7 @@
       this.nextSpawn -= dt;
       if (this.nextSpawn <= 0) {
         this.spawn();
-        // Reduced frequency: 6–14s gap between comets
-        this.nextSpawn = 6000 + Math.random() * 8000;
+        this.nextSpawn = 6000 + Math.random() * 8000; // 6–14s
       }
     }
   };
@@ -286,7 +359,7 @@
       }
       particles.sort(function (a, b) { return a.depth - b.depth; });
 
-      // Create comets (staggered spawn times)
+      // Create comets
       comets = [];
       for (var j = 0; j < cometCount; j++) {
         comets.push(new Comet(canvas.width, canvas.height));
@@ -294,6 +367,14 @@
 
       lastTime = performance.now();
       animId = requestAnimationFrame(loop);
+
+      // Mouse tracking (desktop only)
+      if (!isTouch) {
+        window.addEventListener('mousemove', onMouseMove, { passive: true });
+        // Initialize lerp to center
+        mouse.lx = canvas.width * 0.5;
+        mouse.ly = canvas.height * 0.5;
+      }
 
       window.addEventListener('resize', debounce(resize, 200));
     } catch (e) {
@@ -309,9 +390,12 @@
       var dt = Math.min(now - lastTime, 100);
       lastTime = now;
 
+      // Smooth mouse lerp
+      updateMouseLerp();
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Update & draw particles
+      // Update & draw particles (with parallax offset)
       for (var i = 0; i < particles.length; i++) {
         particles[i].update(dt, now);
         particles[i].draw(ctx);
@@ -357,20 +441,48 @@
   }
 
   /* ──────────────────────────────────────────────────────────────────
-     GRID PARALLAX — subtle scroll-based shift
+     GRID PARALLAX — scroll + mouse micro-shift
      ────────────────────────────────────────────────────────────────── */
 
   function initGridParallax() {
     var grid = document.querySelector('.korantis-atmosphere-grid');
     if (!grid) return;
 
+    var scrollY = 0;
+    var mouseGridX = 0, mouseGridY = 0;
+
+    // Very subtle mouse effect on grid (0.002 multiplier = barely moves)
+    if (!isTouch) {
+      window.addEventListener('mousemove', function (e) {
+        var cx = e.clientX - window.innerWidth * 0.5;
+        var cy = e.clientY - window.innerHeight * 0.5;
+        mouseGridX = cx * 0.002;
+        mouseGridY = cy * 0.002;
+      }, { passive: true });
+    }
+
     var ticking = false;
 
     function onScroll() {
+      scrollY = window.scrollY;
       if (!ticking) {
         requestAnimationFrame(function () {
-          var y = window.scrollY * 0.005;
-          grid.style.setProperty('--atmosphere-grid-scroll-y', y + 'px');
+          var sy = scrollY * 0.005;
+          grid.style.setProperty('--atmosphere-grid-scroll-y', (sy + mouseGridY) + 'px');
+          grid.style.setProperty('--atmosphere-grid-scroll-x', mouseGridX + 'px');
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }
+
+    // Also update on mouse move for reactive feel
+    function onGridMouseMove() {
+      if (!ticking) {
+        requestAnimationFrame(function () {
+          var sy = scrollY * 0.005;
+          grid.style.setProperty('--atmosphere-grid-scroll-y', (sy + mouseGridY) + 'px');
+          grid.style.setProperty('--atmosphere-grid-scroll-x', mouseGridX + 'px');
           ticking = false;
         });
         ticking = true;
@@ -378,11 +490,54 @@
     }
 
     window.addEventListener('scroll', onScroll, { passive: true });
+    if (!isTouch) {
+      window.addEventListener('mousemove', onGridMouseMove, { passive: true });
+    }
   }
+
+  /* ──────────────────────────────────────────────────────────────────
+     HERO MICRO-RESPONSE — subtle text shift with mouse
+     ────────────────────────────────────────────────────────────────── */
+
+  function initHeroParallax() {
+    var hero = document.getElementById('hero-heading');
+    if (!hero || isTouch) return;
+
+    var targetX = 0, targetY = 0;
+    var currentX = 0, currentY = 0;
+    var HERO_LERP = 0.04;
+
+    window.addEventListener('mousemove', function (e) {
+      var cx = e.clientX - window.innerWidth * 0.5;
+      var cy = e.clientY - window.innerHeight * 0.5;
+      // Max 2px shift
+      targetX = (cx / window.innerWidth) * 2;
+      targetY = (cy / window.innerHeight) * 2;
+    }, { passive: true });
+
+    function animateHero() {
+      currentX += (targetX - currentX) * HERO_LERP;
+      currentY += (targetY - currentY) * HERO_LERP;
+
+      if (Math.abs(currentX) > 0.01 || Math.abs(currentY) > 0.01) {
+        hero.style.transform =
+          'translate(' + currentX.toFixed(2) + 'px, ' + currentY.toFixed(2) + 'px)';
+      }
+
+      requestAnimationFrame(animateHero);
+    }
+
+    requestAnimationFrame(animateHero);
+  }
+
+  /* ──────────────────────────────────────────────────────────────────
+     INIT ALL
+     ────────────────────────────────────────────────────────────────── */
 
   function initAll() {
     init();
     initGridParallax();
+    initHeroParallax();
   }
 
   if (document.readyState === 'loading') {
