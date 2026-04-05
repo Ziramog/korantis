@@ -291,7 +291,7 @@ function BackgroundLayers() {
   const [stars, setStars] = useState<Record<string, string>[]>([]);
 
   useEffect(() => {
-    setStars(generateStars(80)); // doubled from 40 → 80 for richer space feel
+    setStars(generateStars(60)); // reduced from 80 for cleaner space feel
   }, []);
 
   // Parallax shift on grid — very subtle, scroll-based
@@ -352,7 +352,13 @@ function BackgroundLayers() {
         aria-hidden="true"
       />
 
-      {/* Layer 4: Star field (80 particles) */}
+      {/* Hero focal — soft radial pulse behind hero text */}
+      <div
+        className="korantis-hero-focal"
+        aria-hidden="true"
+      />
+
+      {/* Layer 4: Star field (60 particles, reduced) */}
       <div className="korantis-star-field" aria-hidden="true">
         {stars.map((s, i) => (
           <span key={i} className="korantis-star" style={s} />
@@ -553,7 +559,7 @@ function Header({ menuOpen, onToggle }: HeaderProps) {
     <header className="fixed top-0 left-0 right-0 z-50 bg-canvas/80 backdrop-blur-md border-b border-border/50" role="banner">
       <div className="container flex items-center justify-between h-14">
         <a href="/" className="korantis-nav-logo" aria-label="Korantis home">
-          <img src="/korantisicon.svg" alt="Korantis" className="w-10 h-10" />
+          <img src="/korantisicon.svg" alt="Korantis" className="w-13 h-13" />
         </a>
 
         <nav className="hidden md:flex items-center gap-10" aria-label="Main navigation">
@@ -601,18 +607,18 @@ function HeroSection() {
     <section className="relative min-h-screen flex items-center" aria-labelledby="hero-heading">
       <div className="container relative">
         <div className="max-w-3xl">
-          <div className="flex items-center gap-3 mb-8">
+          <div className="flex items-center gap-3 mb-10">
             <div className="w-8 h-px bg-border" />
             <p className="text-xs font-mono uppercase tracking-[0.2em] text-ink-subtle">
               Systems Infrastructure
             </p>
           </div>
 
-          <h1 id="hero-heading" className="text-balance" style={{ fontSize: 'clamp(2.25rem, 5vw, 3.5rem)', lineHeight: 1.1, letterSpacing: '-0.03em', fontWeight: 500 }}>
+          <h1 id="hero-heading" className="text-balance" style={{ fontSize: 'clamp(2.25rem, 5vw, 3.5rem)', lineHeight: 1.1, letterSpacing: '-0.03em', fontWeight: 600 }}>
             We build systems<br />that run companies.
           </h1>
 
-          <p className="mt-6 text-base text-ink-muted leading-relaxed max-w-lg text-balance">
+          <p className="mt-8 text-base text-ink-muted leading-relaxed max-w-lg text-balance">
             Most companies don&apos;t scale because their systems don&apos;t. We design the operational infrastructure that makes companies scale.
           </p>
 

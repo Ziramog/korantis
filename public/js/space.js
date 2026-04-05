@@ -11,8 +11,9 @@
  *   4. Content    — top layer
  *
  * Performance:
- *   • 40 particles on mobile, 70 on desktop (reduced from 80)
- *   • 2 comets on mobile, 5 on desktop
+ *   • 30 particles on mobile, 55 on desktop
+ *   • 1 comet on mobile, 3 on desktop
+ *   • 3 distinct depth layers (far/mid/near) with sharp contrast
  *   • requestAnimationFrame driven, capped dt
  *   • No heavy glow, no mouse interaction
  *
@@ -41,15 +42,23 @@
 
   /* ──────────────────────────────────────────────────────────────────
      PARTICLE — small drifting dots with depth layers
+
+     3 distinct layers:
+       Layer 0 (far)  — 50% of particles, tiny, very slow, dim
+       Layer 1 (mid)  — 30% of particles, medium, slow
+       Layer 2 (near) — 20% of particles, slightly larger, brighter
      ────────────────────────────────────────────────────────────────── */
 
   function Particle(canvasW, canvasH) {
-    this.depth = Math.random() < 0.5 ? 0 : Math.random() < 0.7 ? 1 : 2;
+    // 50% far, 30% mid, 20% near
+    var r = Math.random();
+    this.depth = r < 0.5 ? 0 : r < 0.8 ? 1 : 2;
 
+    // Sharper contrast between layers
     var depthConfig = [
-      { sizeMin: 0.3, sizeMax: 0.7, speedMul: 0.25, opacityMin: 0.04, opacityMax: 0.12 },
-      { sizeMin: 0.5, sizeMax: 0.9, speedMul: 0.5,  opacityMin: 0.08, opacityMax: 0.2  },
-      { sizeMin: 0.7, sizeMax: 1.2, speedMul: 0.85, opacityMin: 0.12, opacityMax: 0.28 },
+      { sizeMin: 0.2, sizeMax: 0.5, speedMul: 0.15, opacityMin: 0.03, opacityMax: 0.08 },
+      { sizeMin: 0.4, sizeMax: 0.7, speedMul: 0.35, opacityMin: 0.06, opacityMax: 0.14 },
+      { sizeMin: 0.6, sizeMax: 1.0, speedMul: 0.6,  opacityMin: 0.1,  opacityMax: 0.22 },
     ];
 
     var cfg = depthConfig[this.depth];
@@ -245,8 +254,8 @@
   var lastTime = 0;
 
   var isTouch = isTouchDevice;
-  var particleCount = isTouch ? 40 : 70;
-  var cometCount = isTouch ? 2 : 5;
+  var particleCount = isTouch ? 30 : 55;
+  var cometCount = isTouch ? 1 : 3;
 
   function resize() {
     if (!canvas) return;

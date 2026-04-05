@@ -7,7 +7,8 @@
  *
  * Depth z-index map:
  *   0    — grid background
- *   1    — particles canvas
+ *   1    — particles canvas, vignette
+ *   1.5  — hero focal (radial pulse behind hero text)
  *   2    — ambient light overlay
  *   10+  — content (main)
  *   100  — intro overlay
@@ -26,7 +27,7 @@
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.045;
+  opacity: 0.036;
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.4) 1px, transparent 1px);
@@ -181,6 +182,26 @@
   will-change: opacity, transform;
 }
 
+/* Hero focal field — soft radial center behind hero text */
+.korantis-hero-focal {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.1;
+  background: radial-gradient(
+    ellipse 50% 45% at 50% 45%,
+    rgba(255, 255, 255, 0.06) 0%,
+    transparent 70%
+  );
+  animation: korantis-focal-pulse 8s ease-in-out infinite;
+}
+
+@keyframes korantis-focal-pulse {
+  0%, 100% { opacity: 0.08; }
+  50% { opacity: 0.13; }
+}
+
 /* ──────────────────────────────────────────────────────────────────────
    5. DEPTH LAYERS — z-index enforcement
    ──────────────────────────────────────────────────────────────────────
@@ -224,7 +245,7 @@
 /* ──────────────────────────────────────────────────────────────────────
    7. LOGO — Inline SVG control
    ──────────────────────────────────────────────────────────────────────
-   Nav K icon: 42px, subtle, slight hover glow
+   Nav K icon: 52px, 0.95 opacity, subtle hover glow + scale
    Full logo: 320px, for hero/about (optional future use)
    Paths: #k-stem, #k-upper, #k-lower — animation-ready
    ────────────────────────────────────────────────────────────────────── */
@@ -232,16 +253,17 @@
 .korantis-nav-logo {
   display: inline-flex;
   align-items: center;
-  width: 42px;
-  height: 42px;
+  width: 52px;
+  height: 52px;
   color: #ffffff;
-  opacity: 0.85;
-  transition: opacity 0.3s ease, filter 0.3s ease;
+  opacity: 0.95;
+  transition: opacity 0.3s ease, filter 0.3s ease, transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .korantis-nav-logo:hover {
   opacity: 1;
-  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.15));
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.12));
+  transform: scale(1.05);
 }
 
 .korantis-full-logo {
