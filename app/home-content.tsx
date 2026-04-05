@@ -17,59 +17,120 @@ const organizationSchema = {
 };
 
 // ─── Background Depth Layers ─────────────────────────────────────────
-// Deterministic particle canvas + grid + vignette.
-// Particles react to awake state and cursor position.
+// Multi-layer parallax with LERP interpolation.
+// Each layer has its own easing, depth multiplier, and particle field.
+// Movement feels organic, delayed, with inertia — never snaps to cursor.
 
-function BackgroundLayers({ awake, cursor }: { awake: boolean; cursor?: { x: number; y: number } }) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+function BackgroundLayers({ awake }: { awake: boolean }) {
+  const farRef = useRef<HTMLCanvasElement | null>(null);
+  const midRef = useRef<HTMLCanvasElement | null>(null);
+  const nearRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    const farCanvas = farRef.current;
+    const midCanvas = midRef.current;
+    const nearCanvas = nearRef.current;
+    if (!farCanvas || !midCanvas || !nearCanvas) return;
+
+    const farCtx = farCanvas.getContext('2d');
+    const midCtx = midCanvas.getContext('2d');
+    const nearCtx = nearCanvas.getContext('2d');
+    if (!farCtx || !midCtx || !nearCtx) return;
 
     let w = window.innerWidth;
     let h = window.innerHeight;
-    canvas.width = w;
-    canvas.height = h;
+    farCanvas.width = w;
+    farCanvas.height = h;
+    midCanvas.width = w;
+    midCanvas.height = h;
+    nearCanvas.width = w;
+    nearCanvas.height = h;
 
     const resize = () => {
       w = window.innerWidth;
       h = window.innerHeight;
-      canvas.width = w;
-      canvas.height = h;
+      farCanvas.width = w;
+      farCanvas.height = h;
+      midCanvas.width = w;
+      midCanvas.height = h;
+      nearCanvas.width = w;
+      nearCanvas.height = h;
     };
     window.addEventListener('resize', resize);
 
-    const N = 60;
-    const particles = Array.from({ length: N }).map((_, i) => ({
+    // LERP state
+    let targetX = 0;
+    let targetY = 0;
+    let nearCurrentX = 0;
+    let nearCurrentY = 0;
+    let midCurrentX = 0;
+    let midCurrentY = 0;
+    let farCurrentX = 0;
+    let farCurrentY = 0;
+
+    window.addEventListener('mousemove', (e) => {
+      targetX = (e.clientX / w - 0.5) * 20;
+      targetY = (e.clientY / h - 0.5) * 20;
+    });
+
+    // Particle fields per layer
+    const farParticles = Array.from({ length: 40 }).map((_, i) => ({
       x: (i * 97) % w,
       y: (i * 73) % h,
-      vx: ((i * 13) % 7) / 1000,
-      vy: ((i * 11) % 7) / 1000,
+      vx: ((i * 13) % 5) / 1500,
+      vy: ((i * 11) % 5) / 1500,
     }));
 
-    let raf = 0;
-    const loop = () => {
+    const midParticles = Array.from({ length: 30 }).map((_, i) => ({
+      x: (i * 83) % w,
+      y: (i * 61) % h,
+      vx: ((i * 17) % 7) / 1200,
+      vy: ((i * 19) % 7) / 1200,
+    }));
+
+    const nearParticles = Array.from({ length: 15 }).map((_, i) => ({
+      x: (i * 131) % w,
+      y: (i * 97) % h,
+      vx: ((i * 23) % 9) / 1000,
+      vy: ((i * 29) % 9) / 1000,
+    }));
+
+    const drawParticles = (
+      ctx: CanvasRenderingContext2D,
+      particles: { x: number; y: number; vx: number; vy: number }[],
+      offsetX: number,
+      offsetY: number,
+      size: number,
+      alpha: number
+    ) => {
       ctx.clearRect(0, 0, w, h);
+      ctx.save();
+      ctx.translate(offsetX, offsetY);
       for (let p of particles) {
         const speed = awake ? 2 : 1;
         p.x += p.vx * speed * 0.8;
         p.y += p.vy * speed * 0.8;
         if (p.x < 0) p.x = w; else if (p.x > w) p.x = 0;
         if (p.y < 0) p.y = h; else if (p.y > h) p.y = 0;
-        if (cursor) {
-          const dx = cursor.x - p.x;
-          const dy = cursor.y - p.y;
-          const dist = Math.max(1, Math.hypot(dx, dy));
-          const pull = 0.04 / dist;
-          p.vx += dx * pull * 0.01;
-          p.vy += dy * pull * 0.01;
-        }
-        ctx.fillStyle = awake ? 'rgba(180, 200, 255, 0.9)' : 'rgba(180, 200, 255, 0.5)';
-        ctx.fillRect(p.x, p.y, 2, 2);
+        ctx.fillStyle = `rgba(180, 200, 255, ${alpha})`;
+        ctx.fillRect(p.x, p.y, size, size);
       }
+      ctx.restore();
+    };
+
+    let raf = 0;
+    const loop = () => {
+      nearCurrentX += (targetX - nearCurrentX) * 0.08;
+      nearCurrentY += (targetY - nearCurrentY) * 0.08;
+      midCurrentX += (targetX - midCurrentX) * 0.05;
+      midCurrentY += (targetY - midCurrentY) * 0.05;
+      farCurrentX += (targetX - farCurrentX) * 0.03;
+      farCurrentY += (targetY - farCurrentY) * 0.03;
+
+      drawParticles(farCtx, farParticles, farCurrentX * 0.2, farCurrentY * 0.2, 1.5, awake ? 0.4 : 0.25);
+      drawParticles(midCtx, midParticles, midCurrentX * 0.5, midCurrentY * 0.5, 2, awake ? 0.6 : 0.35);
+      drawParticles(nearCtx, nearParticles, nearCurrentX, nearCurrentY, 2.5, awake ? 0.9 : 0.5);
+
       raf = requestAnimationFrame(loop);
     };
     loop();
@@ -78,11 +139,13 @@ function BackgroundLayers({ awake, cursor }: { awake: boolean; cursor?: { x: num
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', resize);
     };
-  }, [awake, cursor?.x, cursor?.y]);
+  }, [awake]);
 
   return (
     <>
-      <canvas ref={canvasRef} aria-hidden="true" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 1, pointerEvents: 'none' }} />
+      <canvas ref={farRef} aria-hidden="true" className="particles-layer" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 1, pointerEvents: 'none' }} />
+      <canvas ref={midRef} aria-hidden="true" className="particles-layer" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 2, pointerEvents: 'none' }} />
+      <canvas ref={nearRef} aria-hidden="true" className="particles-layer" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 3, pointerEvents: 'none' }} />
       <div className="korantis-atmosphere-grid" aria-hidden="true" />
       <div className="korantis-vignette" aria-hidden="true" />
     </>
@@ -599,7 +662,6 @@ function Footer() {
 export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [awake, setAwake] = useState(false);
-  const [cursor, setCursor] = useState<{ x: number; y: number } | undefined>();
   const activateRef = useRef(false);
 
   const handleActivate = useCallback(() => {
@@ -609,22 +671,9 @@ export default function HomePage() {
     }
   }, []);
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    setCursor({ x: e.clientX, y: e.clientY });
-    if (!activateRef.current) {
-      activateRef.current = true;
-      setAwake(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [handleMouseMove]);
-
   return (
     <main id="main-content" tabIndex={-1} style={{ position: 'relative', zIndex: 10 }}>
-      <BackgroundLayers awake={awake} cursor={cursor} />
+      <BackgroundLayers awake={awake} />
       <SchemaScript />
       <Header menuOpen={menuOpen} onToggle={useCallback(() => setMenuOpen((p) => !p), [])} />
       <HeroSection awake={awake} onActivate={handleActivate} />
