@@ -15,18 +15,18 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  -webkit-mask-image: radial-gradient(circle at center, white 40%, transparent 85%);
-  mask-image: radial-gradient(circle at center, white 40%, transparent 85%);
-  opacity: 0.6;
+  -webkit-mask-image: radial-gradient(circle at center, white 35%, transparent 80%);
+  mask-image: radial-gradient(circle at center, white 35%, transparent 80%);
+  opacity: 0.35;
   transition: opacity 0.6s ease;
 }
 
 .no-grid .grid-zone {
-  opacity: 0.15;
+  opacity: 0.1;
 }
 
 /* ──────────────────────────────────────────────────────────────────────
-   2. HORIZONTAL SCROLL SECTION
+   2. HORIZONTAL SCROLL SECTION — cinematic storytelling
    ────────────────────────────────────────────────────────────────────── */
 
 .h-scroll {
@@ -47,6 +47,17 @@
   height: 100%;
   overflow: hidden;
   flex-shrink: 0;
+  transition: opacity 0.6s ease;
+}
+
+.story-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent 50%, rgba(0,0,0,0.9) 100%);
+  opacity: 0.6;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .story-panel img {
@@ -54,22 +65,77 @@
   height: 100%;
   object-fit: cover;
   filter: brightness(0.4) contrast(1.1);
+  transform: scale(1.08);
+  transition: transform 1.2s ease;
 }
 
-.panel-grid-overlay {
+.story-panel:hover img {
+  transform: scale(1.12);
+}
+
+/* ── Panel vignette (grid fade over image) ── */
+
+.panel-vignette {
   position: absolute;
   inset: 0;
   background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.7) 90%);
   pointer-events: none;
+  z-index: 1;
 }
+
+/* ── Panel ID number (top-left) ── */
+
+.panel-id {
+  position: absolute;
+  top: 10%;
+  left: 8%;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.25);
+  z-index: 3;
+  font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
+}
+
+/* ── Panel overlay (top-right — premium) ── */
 
 .panel-overlay {
   position: absolute;
-  bottom: 15%;
-  left: 10%;
-  max-width: 400px;
+  top: 18%;
+  right: 8%;
+  max-width: 420px;
+  text-align: right;
+  z-index: 3;
+}
+
+.panel-tag {
+  font-size: 18px;
+  line-height: 1.4;
+  margin-bottom: 20px;
+  color: rgba(255,255,255,0.85);
+}
+
+.panel-overlay h2 {
+  font-size: 32px;
+  font-weight: 500;
   color: white;
-  z-index: 2;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.panel-overlay p {
+  font-size: 14px;
+  opacity: 0.7;
+  color: rgba(255,255,255,0.6);
+  margin-top: 12px;
+  line-height: 1.6;
+}
+
+/* ── Section break ── */
+
+.section-break {
+  height: 120px;
+  background: linear-gradient(to bottom, transparent, black);
 }
 
 /* ──────────────────────────────────────────────────────────────────────

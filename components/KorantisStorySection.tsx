@@ -10,19 +10,13 @@ gsap.registerPlugin(ScrollTrigger);
 /**
  * KorantisStorySection
  *
- * Premium 2-panel horizontal scroll with background images.
- * Grid fades during this section. Clean, cinematic, controlled.
+ * Cinematic 2-panel horizontal scroll.
+ * Friction, fade transitions, top-right text, system numbers.
  */
 
 const PANELS = [
-  {
-    img: '/back1.webp',
-    code: '001',
-  },
-  {
-    img: '/back2.webp',
-    code: '002',
-  },
+  { img: '/back1.webp', code: '001' },
+  { img: '/back2.webp', code: '002' },
 ] as const;
 
 export default function KorantisStorySection() {
@@ -36,7 +30,7 @@ export default function KorantisStorySection() {
     if (!section || !track) return;
 
     const ctx = gsap.context(() => {
-      // Grid fade on enter/exit
+      // Grid dim on enter/exit
       ScrollTrigger.create({
         trigger: section,
         start: 'top 80%',
@@ -52,35 +46,35 @@ export default function KorantisStorySection() {
         onEnterBack: () => document.body.classList.add('no-grid'),
       });
 
-      // Horizontal scroll
+      // Horizontal scroll with friction
       const scrollAmount = track.scrollWidth - window.innerWidth;
 
       gsap.to(track, {
         x: -scrollAmount,
-        ease: 'none',
+        ease: 'power3.out',
         scrollTrigger: {
           trigger: section,
           start: 'top top',
-          end: `+=${scrollAmount}`,
-          scrub: 1,
+          end: '+=220%',
+          scrub: 1.2,
           pin: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
         },
       });
 
-      // Panel reveal
-      gsap.utils.toArray<HTMLElement>('.story-panel').forEach((panel) => {
-        const overlay = panel.querySelector('.panel-overlay');
-        if (!overlay) return;
+      // Panel overlay reveal
+      gsap.utils.toArray<HTMLElement>('.panel-overlay').forEach((overlay) => {
         gsap.fromTo(
           overlay,
-          { opacity: 0, y: 40 },
+          { opacity: 0, y: 30 },
           {
             opacity: 1, y: 0, ease: 'power2.out',
             scrollTrigger: {
-              trigger: panel, containerAnimation: gsap.getById('hscroll') as any,
-              start: 'left center', end: 'center center', scrub: 1,
+              trigger: overlay.closest('.story-panel'),
+              start: 'center center',
+              end: 'center 30%',
+              scrub: 1,
             },
           }
         );
@@ -90,39 +84,44 @@ export default function KorantisStorySection() {
     return () => ctx.revert();
   }, []);
 
-  // Cleanup grid class on unmount
   useEffect(() => {
     return () => { document.body.classList.remove('no-grid'); };
   }, []);
 
   return (
-    <section
-      ref={sectionRef}
-      className="h-scroll"
-      aria-label="Korantis story"
-    >
-      <div ref={trackRef} className="h-track">
-        {PANELS.map((panel, i) => {
-          const text = t.story.panels[i];
-          return (
-            <div key={panel.code} className="story-panel">
-              <img src={panel.img} alt="" aria-hidden="true" />
-              <div className="panel-grid-overlay" />
-              <div className="panel-overlay">
-                <span className="font-mono text-xs uppercase tracking-[0.3em] text-white/40">
-                  {panel.code}
-                </span>
-                <h2 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-none text-white">
-                  {text.title}
-                </h2>
-                <p className="mt-4 text-sm sm:text-base text-neutral-400 leading-relaxed">
-                  {text.body[0]}<br />{text.body[1]}
-                </p>
+    <>
+      <div className="section-break" aria-hidden="true" />
+
+      <section
+        ref={sectionRef}
+        className="h-scroll"
+        aria-label="Korantis story"
+      >
+        <div ref={trackRef} className="h-track">
+          {PANELS.map((panel, i) => {
+            const text = t.story.panels[i];
+            return (
+              <div key={panel.code} className="story-panel">
+                <img src={panel.img} alt="" aria-hidden="true" />
+                <div className="panel-vignette" />
+
+                <div className="panel-id" aria-hidden="true">{panel.code}</div>
+
+                <div className="panel-overlay">
+                  <h3 className="panel-tag">
+                    {text.body[0]}<br />
+                    {text.body[1]}
+                  </h3>
+                  <h2>{text.title}</h2>
+                  <p>{text.body[0]}</p>
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
-    </section>
+            );
+          })}
+        </div>
+      </section>
+
+      <div className="section-break" aria-hidden="true" />
+    </>
   );
 }
