@@ -71,16 +71,15 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
       const angle = Math.random() * Math.PI * 2;
       const speed = 0.2 + Math.random() * 0.8;
       const depth = Math.random();
-      // Scatter initial positions so they don't all start at center
-      const initDist = Math.random() * Math.max(w, h);
+      const initDist = 30 + Math.random() * Math.max(w, h) * 0.5;
       stars.push({
         x: centerX + Math.cos(angle) * initDist,
         y: centerY + Math.sin(angle) * initDist,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
         depth,
-        size: 0.5 + depth * 1.5,
-        baseAlpha: 0.2 + depth * 0.6,
+        size: 0.3 + depth * 0.8,
+        baseAlpha: 0.2 + depth * 0.5,
       });
     }
 
