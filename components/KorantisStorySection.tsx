@@ -69,7 +69,6 @@ export default function KorantisStorySection() {
   const progressRef = useRef<HTMLDivElement | null>(null);
   const starsRef = useRef<HTMLDivElement | null>(null);
   const midRef = useRef<HTMLDivElement | null>(null);
-  const nearRef = useRef<HTMLDivElement | null>(null);
 
   useLayoutEffect(() => {
     const section = sectionRef.current;
@@ -104,9 +103,8 @@ export default function KorantisStorySection() {
 
       // ── PARALLAX DEPTH LAYERS ─────────────────────────────────
       [
-        { ref: starsRef, x: 60 },
-        { ref: midRef,   x: 140 },
-        { ref: nearRef,  x: 240 },
+        { ref: starsRef, x: 80  },   // far — flows lines, subtle drift
+        { ref: midRef,   x: 200 },   // mid — grid cubes, faster drift
       ].forEach(({ ref, x }) => {
         if (!ref.current) return;
         gsap.to(ref.current, {
@@ -180,38 +178,34 @@ export default function KorantisStorySection() {
         <div ref={progressRef} className="h-full bg-white/80" style={{ width: '0%' }} />
       </div>
 
-      {/* ── SPACE BACKGROUND (3 depth layers) ────────────────────── */}
+      {/* ── BACKGROUND IMAGES (parallax depth layers) ───────────── */}
       <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+        {/* Far layer — flowing lines (back1.webp), moves slowest */}
         <div
           ref={starsRef}
           className="absolute inset-0"
           style={{
+            backgroundImage: 'url(/back1.webp)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
             width: '200%',
-            background: 'radial-gradient(circle, rgba(255,255,255,0.4) 1px, transparent 1px)',
-            backgroundSize: '60px 60px',
-            opacity: 0.15,
+            opacity: 0.55,
           }}
         />
+        {/* Mid layer — grid cubes (back2.webp), moves faster */}
         <div
           ref={midRef}
           className="absolute inset-0"
           style={{
+            backgroundImage: 'url(/back2.webp)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
             width: '200%',
-            background: 'radial-gradient(circle, rgba(200,215,255,0.5) 1px, transparent 1px)',
-            backgroundSize: '100px 100px',
-            opacity: 0.08,
+            opacity: 0.12,
           }}
         />
-        <div
-          ref={nearRef}
-          className="absolute inset-0"
-          style={{
-            width: '200%',
-            background: 'radial-gradient(circle, rgba(255,255,255,0.6) 1.5px, transparent 1.5px)',
-            backgroundSize: '180px 180px',
-            opacity: 0.06,
-          }}
-        />
+        {/* Base dark tint so images don't overpower text */}
+        <div className="absolute inset-0 bg-black/55" />
       </div>
 
       {/* ── PANELS ───────────────────────────────────────────────── */}
@@ -219,8 +213,15 @@ export default function KorantisStorySection() {
         {PANELS.map((panel) => (
           <div
             key={panel.num}
-            className={`story-panel relative flex h-[100svh] min-w-[100vw] items-center justify-center overflow-hidden ${panel.bg}`}
+            className="story-panel relative flex h-[100svh] min-w-[100vw] items-center justify-center overflow-hidden"
           >
+            {/* Per-panel dark vignette — keeps text readable over images */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: 'radial-gradient(ellipse at center, transparent 20%, rgba(0,0,0,0.55) 100%)',
+              }}
+            />
             <div
               className="story-glow absolute inset-0"
               style={{ background: panel.glow }}
