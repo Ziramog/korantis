@@ -42,67 +42,45 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
     };
     window.addEventListener('resize', resize);
 
-    // LERP state
+    // LERP state — subtle cursor offset for the whole field
     let targetX = 0;
     let targetY = 0;
-    let nearX = 0;
-    let nearY = 0;
-    let midX = 0;
-    let midY = 0;
-    let farX = 0;
-    let farY = 0;
+    let fieldX = 0;
+    let fieldY = 0;
 
     window.addEventListener('mousemove', (e) => {
       targetX = (e.clientX / w - 0.5) * 4;
       targetY = (e.clientY / h - 0.5) * 4;
     });
 
-    // Stars — tiny circular dots, forward motion (depth travel feel)
+    const centerX = w / 2;
+    const centerY = h / 2;
+
     type Star = {
       x: number;
       y: number;
-      baseAlpha: number;
+      vx: number;
+      vy: number;
+      depth: number;
       size: number;
-      layer: 'far' | 'mid' | 'near';
-      speed: number;
-      canStreak: boolean;
+      baseAlpha: number;
     };
 
     const stars: Star[] = [];
-    // Far stars — many, tiny, dim, slow
-    for (let i = 0; i < 80; i++) {
+    for (let i = 0; i < 120; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 0.2 + Math.random() * 0.8;
+      const depth = Math.random();
+      // Scatter initial positions so they don't all start at center
+      const initDist = Math.random() * Math.max(w, h);
       stars.push({
-        x: (i * 137.508) % w,
-        y: (i * 97.31) % h,
-        baseAlpha: 0.15 + (i % 5) * 0.05,
-        size: 0.5 + (i % 3) * 0.25,
-        layer: 'far',
-        speed: 0.02,
-        canStreak: false,
-      });
-    }
-    // Mid stars — moderate
-    for (let i = 0; i < 30; i++) {
-      stars.push({
-        x: (i * 193.7) % w,
-        y: (i * 151.3) % h,
-        baseAlpha: 0.3 + (i % 4) * 0.08,
-        size: 1 + (i % 3) * 0.3,
-        layer: 'mid',
-        speed: 0.05,
-        canStreak: false,
-      });
-    }
-    // Near stars — fewer, brighter, fastest; ~10% can streak
-    for (let i = 0; i < 12; i++) {
-      stars.push({
-        x: (i * 271.1) % w,
-        y: (i * 211.7) % h,
-        baseAlpha: 0.5 + (i % 3) * 0.15,
-        size: 1.5 + (i % 2) * 0.5,
-        layer: 'near',
-        speed: 0.12,
-        canStreak: i % 10 === 0,
+        x: centerX + Math.cos(angle) * initDist,
+        y: centerY + Math.sin(angle) * initDist,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        depth,
+        size: 0.5 + depth * 1.5,
+        baseAlpha: 0.2 + depth * 0.6,
       });
     }
 
@@ -153,13 +131,9 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
 
       ctx.clearRect(0, 0, w, h);
 
-      // LERP
-      nearX += (targetX - nearX) * 0.08;
-      nearY += (targetY - nearY) * 0.08;
-      midX += (targetX - midX) * 0.05;
-      midY += (targetY - midY) * 0.05;
-      farX += (targetX - farX) * 0.03;
-      farY += (targetY - farY) * 0.03;
+      // Subtle field offset from cursor
+      fieldX += (targetX - fieldX) * 0.05;
+      fieldY += (targetY - fieldY) * 0.05;
 
       // Burst timing
       burstTimer += dt;
@@ -177,41 +151,36 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
 
       const awakeBoost = awake ? 1.2 : 1;
 
-      // Draw stars
+      // Update & draw stars — pure radial motion from center
       for (let s of stars) {
-        // Forward motion only — no sideways drift
-        s.y += s.speed * awakeBoost * speedMultiplier;
+        const dx = s.x - centerX;
+        const dy = s.y - centerY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
 
-        // Reset when off bottom of screen
-        if (s.y > h + 5) {
-          s.y = -5;
-          s.x = Math.random() * w;
+        s.x += s.vx * (1 + s.depth * 2) * speedMultiplier * awakeBoost;
+        s.y += s.vy * (1 + s.depth * 2) * speedMultiplier * awakeBoost;
+
+        // Perspective scale — stars grow as they move outward
+        s.size = 0.5 + s.depth * 2 + distance * 0.002;
+
+        // Reset when off screen
+        if (
+          s.x < -20 || s.x > w + 20 ||
+          s.y < -20 || s.y > h + 20
+        ) {
+          s.x = centerX;
+          s.y = centerY;
+          const angle = Math.random() * Math.PI * 2;
+          const speed = 0.2 + Math.random() * 0.8;
+          s.vx = Math.cos(angle) * speed;
+          s.vy = Math.sin(angle) * speed;
         }
 
-        let ox = 0;
-        let oy = 0;
-        if (s.layer === 'far') { ox = farX * 0.2; oy = farY * 0.2; }
-        else if (s.layer === 'mid') { ox = midX * 0.5; oy = midY * 0.5; }
-        else { ox = nearX; oy = nearY; }
-
-        const alpha = s.baseAlpha * (awake ? 1.6 : 1);
-        const px = s.x + ox;
-        const py = s.y + oy;
-
-        // Near stars: ~10% chance of hyperspace streak when awake
-        if (s.canStreak && awake && Math.random() < 0.1) {
-          ctx.beginPath();
-          ctx.moveTo(px, py);
-          ctx.lineTo(px, py - 6);
-          ctx.strokeStyle = `rgba(200, 215, 255, ${alpha * 0.6})`;
-          ctx.lineWidth = 1;
-          ctx.stroke();
-        } else {
-          ctx.beginPath();
-          ctx.arc(px, py, s.size, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(200, 215, 255, ${alpha})`;
-          ctx.fill();
-        }
+        const alpha = s.baseAlpha * (awake ? 1.4 : 1);
+        ctx.beginPath();
+        ctx.arc(s.x + fieldX, s.y + fieldY, s.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(200, 215, 255, ${alpha})`;
+        ctx.fill();
       }
 
       // Comet spawning
