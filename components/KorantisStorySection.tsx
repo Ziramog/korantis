@@ -15,8 +15,8 @@ gsap.registerPlugin(ScrollTrigger);
  */
 
 const PANELS = [
-  { img: '/back1.webp', code: '001' },
-  { img: '/back2.webp', code: '002' },
+  { img: '/back1.webp', code: '01' },
+  { img: '/back2.webp', code: '02' },
 ] as const;
 
 export default function KorantisStorySection() {
@@ -89,32 +89,43 @@ export default function KorantisStorySection() {
   }, []);
 
   return (
-    <section
-      ref={sectionRef}
-      className="h-scroll"
-      aria-label="Korantis story"
-    >
-      <div ref={trackRef} className="h-track">
-        {PANELS.map((panel, i) => {
-          const text = t.story.panels[i];
-          return (
-            <div key={panel.code} className="story-panel">
-              <img src={panel.img} alt="" aria-hidden="true" />
-
-              <div className="panel-id" aria-hidden="true">{panel.code}</div>
-
-              <div className="panel-overlay">
-                <div className="panel-meta">
-                  {text.body[0]}<br />
-                  {text.body[1]}
-                </div>
-                <h2>{text.title}</h2>
-                <p>{text.body[1]}</p>
-              </div>
-            </div>
-          );
-        })}
+    <>
+      <div className="section-label" aria-hidden="true">
+        <span>01</span>
+        <p>System Visualization</p>
       </div>
-    </section>
+
+      <section
+        ref={sectionRef}
+        className="h-scroll"
+        aria-label="Korantis story"
+      >
+        <div ref={trackRef} className="h-track">
+          {PANELS.map((panel, i) => {
+            const text = t.story.panels[i];
+            return (
+              <div key={panel.code} className="story-panel">
+                <img src={panel.img} alt="" aria-hidden="true" />
+
+                <div className="panel-id" aria-hidden="true">{panel.code}</div>
+
+                <div className="k-anchor-wrap" aria-hidden="true">
+                  <img src="/Kbrand.png" className="k-anchor" alt="" />
+                </div>
+
+                <div className="panel-overlay">
+                  <div className="panel-meta">
+                    {text.body[0]}<br />
+                    {text.body[1]}
+                  </div>
+                  <h2>{text.title}</h2>
+                  <p>{text.body[1]}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    </>
   );
 }

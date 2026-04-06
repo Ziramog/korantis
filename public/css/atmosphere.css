@@ -17,7 +17,7 @@
   pointer-events: none;
   -webkit-mask-image: radial-gradient(circle at center, white 35%, transparent 80%);
   mask-image: radial-gradient(circle at center, white 35%, transparent 80%);
-  opacity: 0.35;
+  opacity: 0.25;
   transition: opacity 0.6s ease;
 }
 
@@ -26,7 +26,43 @@
 }
 
 /* ──────────────────────────────────────────────────────────────────────
-   2. HORIZONTAL SCROLL SECTION — controlled system strip
+   2. SECTION LABEL — system hierarchy numbers
+   ────────────────────────────────────────────────────────────────────── */
+
+.section-label {
+  position: relative;
+  margin-left: 8%;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.section-label span {
+  font-size: 12px;
+  color: rgba(255,255,255,0.25);
+  font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
+}
+
+.section-label p {
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  margin: 0;
+  font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   3. SECTION DEPTH — alternating dark sections
+   ────────────────────────────────────────────────────────────────────── */
+
+.section-dark {
+  background: linear-gradient(to bottom, rgba(0,0,0,0.8), black);
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   4. HORIZONTAL SCROLL SECTION — controlled system strip
    ────────────────────────────────────────────────────────────────────── */
 
 .h-scroll {
@@ -73,6 +109,7 @@
   height: 100%;
   overflow: hidden;
   flex-shrink: 0;
+  transform: translateZ(0);
 }
 
 /* Image as background layer — right side only */
@@ -105,17 +142,23 @@
 .panel-overlay {
   position: absolute;
   left: 8%;
-  top: 20%;
-  max-width: 480px;
+  top: 22%;
+  max-width: 420px;
   text-align: left;
   z-index: 3;
+  transition: transform 0.6s ease;
+}
+
+.story-panel:hover .panel-overlay {
+  transform: translateY(-6px);
 }
 
 .panel-meta {
   margin-bottom: 18px;
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1.4;
   color: rgba(255,255,255,0.85);
+  opacity: 0.85;
 }
 
 .panel-overlay h2 {
@@ -124,7 +167,7 @@
   color: white;
   line-height: 1.1;
   letter-spacing: -0.02em;
-  margin: 0;
+  margin: 10px 0 0 0;
 }
 
 .panel-overlay p {
@@ -133,6 +176,30 @@
   color: rgba(255,255,255,0.6);
   margin-top: 12px;
   line-height: 1.6;
+}
+
+/* ── K brand anchor (per-panel) ── */
+
+.k-anchor-wrap {
+  position: absolute;
+  right: 6%;
+  top: 10%;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.k-anchor-wrap::after {
+  content: "";
+  position: absolute;
+  inset: -40px;
+  background: radial-gradient(circle, rgba(120,120,255,0.15), transparent);
+  pointer-events: none;
+}
+
+.k-anchor {
+  width: 80px;
+  opacity: 0.15;
+  display: block;
 }
 
 /* ──────────────────────────────────────────────────────────────────────

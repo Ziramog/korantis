@@ -267,6 +267,15 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
+function SystemLabel({ number, title }: { number: string; title: string }) {
+  return (
+    <div className="section-label" aria-hidden="true">
+      <span>{number}</span>
+      <p>{title}</p>
+    </div>
+  );
+}
+
 function KLogoIcon({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" className={className} aria-hidden="true">
@@ -373,6 +382,7 @@ function LayersSection() {
   return (
     <section id="layers" className="section-padding border-t border-border" aria-labelledby="layers-heading">
       <div className="container">
+        <SystemLabel number="02" title="Architecture" />
         <SectionLabel>{t.layers.label}</SectionLabel>
         <h2 id="layers-heading" className="text-2xl font-medium mb-16">{t.layers.heading}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border">
@@ -417,8 +427,9 @@ function ProblemSection() {
 function OutcomeSection() {
   const { t } = useLang();
   return (
-    <section className="section-padding border-t border-border" aria-labelledby="outcome-heading">
+    <section className="section-padding border-t border-border section-dark" aria-labelledby="outcome-heading">
       <div className="container">
+        <SystemLabel number="03" title="Impact" />
         <SectionLabel>{t.outcomes.label}</SectionLabel>
         <h2 id="outcome-heading" className="text-2xl font-medium mb-16">{t.outcomes.heading}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
@@ -442,6 +453,7 @@ function AboutSection() {
   return (
     <section id="about" className="section-padding border-t border-border" aria-labelledby="about-heading">
       <div className="container">
+        <SystemLabel number="04" title="Company" />
         <div className="max-w-2xl">
           <SectionLabel>{t.about.label}</SectionLabel>
           <h2 id="about-heading" className="text-2xl font-medium mb-6">{t.about.heading}</h2>
