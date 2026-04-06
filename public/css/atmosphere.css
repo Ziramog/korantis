@@ -2,32 +2,12 @@
  * ═══════════════════════════════════════════════════════════════════════
  * KORANTIS — Atmosphere Stylesheet
  * ═══════════════════════════════════════════════════════════════════════
- * 3-Layer Visual System:
- *   1. Grid    — structure (canvas-drawn, barely visible)
- *   2. Stars   — depth (canvas-drawn, calm drift)
- *   3. Comets  — events (canvas-drawn, rare diagonal streaks)
- *
- * Depth z-index map:
- *   1    — space canvas (grid + stars + comets)
- *   10+  — content (main)
+ * Minimal. Grid is canvas-drawn. Everything else is content.
  * ═══════════════════════════════════════════════════════════════════════
  */
 
 /* ──────────────────────────────────────────────────────────────────────
-   1. SPACE CANVAS — managed by space.js (3-layer system)
-   ────────────────────────────────────────────────────────────────────── */
-
-.korantis-space-canvas {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* ──────────────────────────────────────────────────────────────────────
-   2. CONTENT Z-INDEX
+   1. CONTENT Z-INDEX
    ────────────────────────────────────────────────────────────────────── */
 
 .korantis-main-content {
@@ -36,17 +16,17 @@
 }
 
 /* ──────────────────────────────────────────────────────────────────────
-   3. REDUCED MOTION
+   2. REDUCED MOTION
    ────────────────────────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
-  .korantis-space-canvas {
+  #grid-bg {
     display: none;
   }
 }
 
 /* ──────────────────────────────────────────────────────────────────────
-   4. LOGO — 84px, full opacity, crisp
+   3. LOGO — 84px, full opacity, crisp
    ────────────────────────────────────────────────────────────────────── */
 
 .korantis-nav-logo {

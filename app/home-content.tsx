@@ -20,23 +20,7 @@ const organizationSchema = {
 
 // ─── Background Depth Layers ─────────────────────────────────────────
 
-type Star = {
-  x: number;
-  y: number;
-  speed: number;
-  size: number;
-  alpha: number;
-};
-
-type Comet = {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  length: number;
-};
-
-function BackgroundLayers({ awake }: { awake: boolean }) {
+function BackgroundLayers({ awake: _awake }: { awake: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -50,153 +34,76 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
     canvas.width = w;
     canvas.height = h;
 
-    // ── LAYER 2: STARFIELD ──────────────────────────────────────────
-    const stars: Star[] = [];
-    for (let i = 0; i < 140; i++) {
-      stars.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        speed: 0.05 + Math.random() * 0.25,
-        size: Math.random() * 1.2,
-        alpha: 0.2 + Math.random() * 0.4,
-      });
-    }
-
-    // ── LAYER 3: COMETS ─────────────────────────────────────────────
-    const comets: Comet[] = [];
-
-    const spawnComet = () => {
-      if (Math.random() > 0.98) {
-        comets.push({
-          x: Math.random() * w,
-          y: -50,
-          vx: 2 + Math.random() * 2,
-          vy: 3 + Math.random() * 3,
-          length: 80 + Math.random() * 120,
-        });
-      }
-    };
-
-    // ── LAYER 1: GRID ───────────────────────────────────────────────
-    const drawGrid = (
-      ctx: CanvasRenderingContext2D,
-      w: number,
-      h: number,
-      offsetX: number,
-      offsetY: number
-    ) => {
-      const size = 60;
-      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-      ctx.lineWidth = 0.5;
-
-      for (let x = -size; x < w + size; x += size) {
-        ctx.beginPath();
-        ctx.moveTo(x + (offsetX % size), 0);
-        ctx.lineTo(x + (offsetX % size), h);
-        ctx.stroke();
-      }
-
-      for (let y = -size; y < h + size; y += size) {
-        ctx.beginPath();
-        ctx.moveTo(0, y + (offsetY % size));
-        ctx.lineTo(w, y + (offsetY % size));
-        ctx.stroke();
-      }
-    };
+    let offsetX = 0;
+    let offsetY = 0;
 
     const onResize = () => {
       w = window.innerWidth;
       h = window.innerHeight;
       canvas.width = w;
       canvas.height = h;
-
-      // Respawn stars on resize
-      stars.length = 0;
-      for (let i = 0; i < 140; i++) {
-        stars.push({
-          x: Math.random() * w,
-          y: Math.random() * h,
-          speed: 0.05 + Math.random() * 0.25,
-          size: Math.random() * 1.2,
-          alpha: 0.2 + Math.random() * 0.4,
-        });
-      }
     };
+
+    const onMouseMove = (e: MouseEvent) => {
+      offsetX = (e.clientX - w / 2) * 0.01;
+      offsetY = (e.clientY - h / 2) * 0.01;
+    };
+
     window.addEventListener('resize', onResize);
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
 
     let raf = 0;
 
-    const loop = () => {
+    const drawGrid = () => {
       ctx.clearRect(0, 0, w, h);
 
-      const alphaMult = awake ? 1 : 0.7;
+      const size = 80;
+      ctx.strokeStyle = 'rgba(255,255,255,0.035)';
+      ctx.lineWidth = 0.5;
 
-      // Subtle scroll reaction
-      const scrollOffset = window.scrollY * 0.05;
-
-      // ── LAYER 1: GRID ─────────────────────────────────────────────
-      drawGrid(ctx, w, h, scrollOffset, scrollOffset * 0.3);
-
-      // ── LAYER 2: STARS ────────────────────────────────────────────
-      for (const s of stars) {
-        s.x += 0.1 * s.speed;
-        s.y += 0.05 * s.speed;
-
-        if (s.x > w) s.x = 0;
-        if (s.y > h) s.y = 0;
-
+      for (let x = 0; x < w; x += size) {
         ctx.beginPath();
-        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(220,230,255,${s.alpha * alphaMult})`;
-        ctx.fill();
-      }
-
-      // ── LAYER 3: COMETS ───────────────────────────────────────────
-      spawnComet();
-
-      for (let i = comets.length - 1; i >= 0; i--) {
-        const c = comets[i];
-        c.x += c.vx;
-        c.y += c.vy;
-
-        const grad = ctx.createLinearGradient(
-          c.x,
-          c.y,
-          c.x - c.vx * 20,
-          c.y - c.vy * 20
-        );
-        grad.addColorStop(0, 'rgba(255,255,255,0.9)');
-        grad.addColorStop(1, 'rgba(255,255,255,0)');
-
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = 1;
-
-        ctx.beginPath();
-        ctx.moveTo(c.x, c.y);
-        ctx.lineTo(c.x - c.vx * c.length, c.y - c.vy * c.length);
+        ctx.moveTo(x + offsetX, 0);
+        ctx.lineTo(x + offsetX, h);
         ctx.stroke();
-
-        // Remove off-screen comets
-        if (c.x > w + 200 || c.y > h + 200 || c.x < -200 || c.y < -200) {
-          comets.splice(i, 1);
-        }
       }
 
-      raf = requestAnimationFrame(loop);
+      for (let y = 0; y < h; y += size) {
+        ctx.beginPath();
+        ctx.moveTo(0, y + offsetY);
+        ctx.lineTo(w, y + offsetY);
+        ctx.stroke();
+      }
+
+      // Center fade (depth)
+      const gradient = ctx.createRadialGradient(
+        w / 2, h / 2, 0,
+        w / 2, h / 2, w * 0.7
+      );
+      gradient.addColorStop(0, 'rgba(0,0,0,0)');
+      gradient.addColorStop(1, 'rgba(0,0,0,0.6)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, w, h);
     };
 
-    raf = requestAnimationFrame(loop);
+    const animate = () => {
+      drawGrid();
+      raf = requestAnimationFrame(animate);
+    };
+
+    raf = requestAnimationFrame(animate);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', onResize);
+      window.removeEventListener('mousemove', onMouseMove);
     };
-  }, [awake]);
+  }, []);
 
   return (
     <canvas
       ref={canvasRef}
       aria-hidden="true"
-      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 1, pointerEvents: 'none' }}
+      style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', zIndex: -1, pointerEvents: 'none', background: '#05070a' }}
     />
   );
 }
