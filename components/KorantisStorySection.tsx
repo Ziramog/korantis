@@ -9,15 +9,27 @@ gsap.registerPlugin(ScrollTrigger);
 /**
  * KorantisStorySection
  *
- * Cinematic horizontal scroll storytelling.
+ * Cinematic horizontal scroll storytelling — space journey.
  * 5 panels: Chaos → Friction → Engine → Scale → Dominance.
  *
  * Core scroll engine: useLayoutEffect + gsap.context, scrub:1,
  * anticipatePin:1, invalidateOnRefresh:true, disabled on mobile.
+ *
+ * Visual layers added:
+ *   - Space dot background (global)
+ *   - Parallax depth layers (3 independent speeds)
+ *   - Text cinematic reveal (opacity, y, scale)
+ *   - Progress bar (top)
+ *   - Panel scale + focus (0.85→1, 0.6→1)
+ *   - Glow / light FX per panel
  */
 export default function KorantisStorySection() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const progressRef = useRef<HTMLDivElement | null>(null);
+  const starsRef = useRef<HTMLDivElement | null>(null);
+  const midRef = useRef<HTMLDivElement | null>(null);
+  const nearRef = useRef<HTMLDivElement | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -32,15 +44,17 @@ export default function KorantisStorySection() {
 
     const section = sectionRef.current;
     const container = containerRef.current;
+    const progressBar = progressRef.current;
     const totalWidth = container.scrollWidth;
     const scrollAmount = totalWidth - window.innerWidth;
 
     const ctx = gsap.context(() => {
-      // ── Horizontal movement ────────────────────────────────────
-      gsap.to(container, {
+      // ── MAIN HORIZONTAL SCROLL ───────────────────────────────
+      const scrollTween = gsap.to(container, {
         x: -scrollAmount,
         ease: 'none',
         scrollTrigger: {
+          id: 'horizontalScroll',
           trigger: section,
           start: 'top top',
           end: () => `+=${scrollAmount}`,
@@ -48,17 +62,64 @@ export default function KorantisStorySection() {
           pin: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            if (progressBar) {
+              gsap.to(progressBar, {
+                width: `${self.progress * 100}%`,
+                duration: 0.1,
+              });
+            }
+          },
         },
       });
 
-      // ── Text reveal animations ─────────────────────────────────
+      // ── SPACE STAR PARALLAX (far layer, slow) ──────────────
+      if (starsRef.current) {
+        gsap.to(starsRef.current, {
+          x: 60,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: section,
+            containerAnimation: scrollTween,
+            scrub: 1,
+          },
+        });
+      }
+
+      // ── MID PARALLAX LAYER ──────────────────────────────────
+      if (midRef.current) {
+        gsap.to(midRef.current, {
+          x: 140,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: section,
+            containerAnimation: scrollTween,
+            scrub: 1,
+          },
+        });
+      }
+
+      // ── NEAR PARALLAX LAYER ─────────────────────────────────
+      if (nearRef.current) {
+        gsap.to(nearRef.current, {
+          x: 240,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: section,
+            containerAnimation: scrollTween,
+            scrub: 1,
+          },
+        });
+      }
+
+      // ── TEXT CINEMATIC REVEAL ──────────────────────────────
       gsap.utils.toArray<HTMLDivElement>('.story-panel').forEach((panel) => {
         const content = panel.querySelector('.story-content');
         if (!content) return;
 
         gsap.fromTo(
           content,
-          { opacity: 0, y: 80, scale: 0.95 },
+          { opacity: 0, y: 100, scale: 0.9 },
           {
             opacity: 1,
             y: 0,
@@ -66,10 +127,8 @@ export default function KorantisStorySection() {
             ease: 'power2.out',
             scrollTrigger: {
               trigger: panel,
-              containerAnimation: gsap.getById('horizontalScroll')
-                ? gsap.getById('horizontalScroll')
-                : undefined,
-              start: 'left 80%',
+              containerAnimation: scrollTween,
+              start: 'left center',
               end: 'center center',
               scrub: 1,
             },
@@ -77,31 +136,40 @@ export default function KorantisStorySection() {
         );
       });
 
-      // ── Background parallax ────────────────────────────────────
-      gsap.utils.toArray<HTMLDivElement>('.story-bg').forEach((bg) => {
-        gsap.to(bg, {
-          x: 80,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: bg.parentElement,
-            scrub: 1.5,
-          },
-        });
+      // ── PANEL SCALE + FOCUS EFFECT ──────────────────────────
+      gsap.utils.toArray<HTMLDivElement>('.story-panel').forEach((panel) => {
+        gsap.fromTo(
+          panel,
+          { scale: 0.85, opacity: 0.55 },
+          {
+            scale: 1,
+            opacity: 1,
+            ease: 'power1.out',
+            scrollTrigger: {
+              trigger: panel,
+              containerAnimation: scrollTween,
+              start: 'left 60%',
+              end: 'center center',
+              scrub: 1,
+            },
+          }
+        );
       });
 
-      // ── Number counter reveal ──────────────────────────────────
-      gsap.utils.toArray<HTMLSpanElement>('.story-num').forEach((num) => {
+      // ── GLOW PULSE PER PANEL ────────────────────────────────
+      gsap.utils.toArray<HTMLDivElement>('.story-glow').forEach((glow) => {
         gsap.fromTo(
-          num,
-          { opacity: 0, y: 30 },
+          glow,
+          { opacity: 0.3, scale: 0.8 },
           {
-            opacity: 1,
-            y: 0,
-            ease: 'power2.out',
+            opacity: 0.7,
+            scale: 1.1,
+            ease: 'none',
             scrollTrigger: {
-              trigger: num.closest('.story-panel'),
-              start: 'left 70%',
-              end: 'left 30%',
+              trigger: glow.closest('.story-panel'),
+              containerAnimation: scrollTween,
+              start: 'left center',
+              end: 'right center',
               scrub: 1,
             },
           }
@@ -118,14 +186,61 @@ export default function KorantisStorySection() {
       className="relative w-full overflow-hidden bg-black text-white"
       aria-label="Korantis story"
     >
-      <div ref={containerRef} className={`flex ${isMobile ? '!flex-col !h-auto !w-full' : 'w-max'}`}>
+      {/* ── PROGRESS BAR ──────────────────────────────────── */}
+      <div className="fixed top-0 left-0 z-50 w-full h-[2px] bg-white/5">
+        <div
+          ref={progressRef}
+          className="h-full bg-white/80"
+          style={{ width: '0%' }}
+        />
+      </div>
+
+      {/* ── SPACE BACKGROUND (3 depth layers) ─────────────── */}
+      <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+        {/* Far: tiny dots, sparse */}
+        <div
+          ref={starsRef}
+          className="absolute inset-0"
+          style={{
+            width: '200%',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.4) 1px, transparent 1px)',
+            backgroundSize: '60px 60px',
+            opacity: 0.15,
+          }}
+        />
+        {/* Mid: slightly larger, less sparse */}
+        <div
+          ref={midRef}
+          className="absolute inset-0"
+          style={{
+            width: '200%',
+            background: 'radial-gradient(circle, rgba(200,215,255,0.5) 1px, transparent 1px)',
+            backgroundSize: '100px 100px',
+            opacity: 0.08,
+          }}
+        />
+        {/* Near: larger dots, rare */}
+        <div
+          ref={nearRef}
+          className="absolute inset-0"
+          style={{
+            width: '200%',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.6) 1.5px, transparent 1.5px)',
+            backgroundSize: '180px 180px',
+            opacity: 0.06,
+          }}
+        />
+      </div>
+
+      {/* ── PANELS ────────────────────────────────────────── */}
+      <div ref={containerRef} className={`relative z-10 flex ${isMobile ? '!flex-col !h-auto !w-full' : 'w-max'}`}>
 
         {/* ── PANEL 1 — CHAOS ─────────────────────────────── */}
         <div className="story-panel relative flex h-screen min-w-[100vw] items-center justify-center overflow-hidden bg-black">
           <div
-            className="story-bg absolute inset-0"
+            className="story-glow absolute inset-0"
             style={{
-              background: 'radial-gradient(circle at 30% 50%, rgba(180,30,30,0.12) 0%, transparent 60%)',
+              background: 'radial-gradient(circle at 30% 50%, rgba(180,30,30,0.10) 0%, transparent 60%)',
             }}
           />
           <div className="story-content relative z-10 mx-auto max-w-2xl px-6 text-center">
@@ -146,7 +261,7 @@ export default function KorantisStorySection() {
         {/* ── PANEL 2 — FRICTION ────────────────────────────── */}
         <div className="story-panel relative flex h-screen min-w-[100vw] items-center justify-center overflow-hidden bg-neutral-950">
           <div
-            className="story-bg absolute inset-0"
+            className="story-glow absolute inset-0"
             style={{
               background: 'radial-gradient(circle at 70% 40%, rgba(255,140,0,0.08) 0%, transparent 55%)',
             }}
@@ -169,7 +284,7 @@ export default function KorantisStorySection() {
         {/* ── PANEL 3 — ENGINE ──────────────────────────────── */}
         <div className="story-panel relative flex h-screen min-w-[100vw] items-center justify-center overflow-hidden bg-black">
           <div
-            className="story-bg absolute inset-0"
+            className="story-glow absolute inset-0"
             style={{
               background: 'radial-gradient(circle at 50% 50%, rgba(0,200,255,0.06) 0%, transparent 50%)',
             }}
@@ -192,7 +307,7 @@ export default function KorantisStorySection() {
         {/* ── PANEL 4 — SCALE ───────────────────────────────── */}
         <div className="story-panel relative flex h-screen min-w-[100vw] items-center justify-center overflow-hidden bg-neutral-950">
           <div
-            className="story-bg absolute inset-0"
+            className="story-glow absolute inset-0"
             style={{
               background: 'radial-gradient(circle at 40% 60%, rgba(0,255,136,0.06) 0%, transparent 50%)',
             }}
@@ -215,7 +330,7 @@ export default function KorantisStorySection() {
         {/* ── PANEL 5 — DOMINANCE ───────────────────────────── */}
         <div className="story-panel relative flex h-screen min-w-[100vw] items-center justify-center overflow-hidden bg-black">
           <div
-            className="story-bg absolute inset-0"
+            className="story-glow absolute inset-0"
             style={{
               background: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.04) 0%, transparent 45%)',
             }}
