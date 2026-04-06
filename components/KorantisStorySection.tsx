@@ -1,6 +1,6 @@
 'use client';
 
-import { useLayoutEffect, useRef, useState, useEffect } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -9,49 +9,12 @@ gsap.registerPlugin(ScrollTrigger);
 /**
  * KorantisStorySection
  *
- * Desktop: pins section, converts vertical scroll into horizontal movement.
- * Mobile:  vertical stack of full-screen panels with IntersectionObserver
- *          fade-in reveal — no GSAP, no horizontal scroll.
+ * Pins the section on ALL screen sizes (mobile + desktop) and converts
+ * vertical scroll into horizontal movement across 5 cinematic panels.
  *
- * 5 panels: Chaos → Friction → Engine → Scale → Dominance.
+ * ScrollTrigger.normalizeScroll(true) prevents iOS rubber-band scroll
+ * from fighting the pin, giving clean touch-driven horizontal movement.
  */
-
-// ── Mobile panel fade-in via IntersectionObserver ──────────────────────
-
-function useMobilePanelReveal(enabled: boolean) {
-  useEffect(() => {
-    if (!enabled) return;
-
-    const panels = document.querySelectorAll<HTMLElement>('.story-panel');
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const content = entry.target.querySelector<HTMLElement>('.story-content');
-          if (!content) return;
-
-          if (entry.isIntersecting) {
-            content.style.opacity = '1';
-            content.style.transform = 'translateY(0) scale(1)';
-          }
-        });
-      },
-      { threshold: 0.25 }
-    );
-
-    panels.forEach((panel) => {
-      const content = panel.querySelector<HTMLElement>('.story-content');
-      if (content) {
-        content.style.opacity = '0';
-        content.style.transform = 'translateY(40px) scale(0.97)';
-        content.style.transition = 'opacity 0.7s ease, transform 0.7s ease';
-      }
-      observer.observe(panel);
-    });
-
-    return () => observer.disconnect();
-  }, [enabled]);
-}
 
 // ── Panel data ─────────────────────────────────────────────────────────
 
@@ -62,7 +25,7 @@ const PANELS = [
     num: '01',
     numColor: 'text-red-400/40',
     title: 'Chaos',
-    body: 'Too many tasks. No leverage.\nYour team is busy — but nothing compounds.',
+    body: ['Too many tasks. No leverage.', 'Your team is busy — but nothing compounds.'],
   },
   {
     bg: 'bg-neutral-950',
@@ -70,7 +33,7 @@ const PANELS = [
     num: '02',
     numColor: 'text-orange-400/40',
     title: 'Friction',
-    body: 'Time lost. Opportunities missed.\nEvery manual process is a tax on growth.',
+    body: ['Time lost. Opportunities missed.', 'Every manual process is a tax on growth.'],
   },
   {
     bg: 'bg-black',
@@ -78,7 +41,7 @@ const PANELS = [
     num: '03',
     numColor: 'text-cyan-400/40',
     title: 'Korantis Engine',
-    body: 'Automation replaces effort.\nSystems execute while you strategize.',
+    body: ['Automation replaces effort.', 'Systems execute while you strategize.'],
   },
   {
     bg: 'bg-neutral-950',
@@ -86,7 +49,7 @@ const PANELS = [
     num: '04',
     numColor: 'text-emerald-400/40',
     title: 'Scale',
-    body: 'Systems grow while you focus.\nInfrastructure that compounds, not degrades.',
+    body: ['Systems grow while you focus.', 'Infrastructure that compounds, not degrades.'],
   },
   {
     bg: 'bg-black',
@@ -94,7 +57,7 @@ const PANELS = [
     num: '05',
     numColor: 'text-neutral-300/40',
     title: 'Dominance',
-    body: 'You operate. Systems execute.\nThis is what it looks like when everything works.',
+    body: ['You operate. Systems execute.', 'This is what it looks like when everything works.'],
   },
 ] as const;
 
@@ -108,30 +71,18 @@ export default function KorantisStorySection() {
   const midRef = useRef<HTMLDivElement | null>(null);
   const nearRef = useRef<HTMLDivElement | null>(null);
 
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check, { passive: true });
-    return () => window.removeEventListener('resize', check);
-  }, []);
-
-  // Mobile: IntersectionObserver reveal (runs only when isMobile is true)
-  useMobilePanelReveal(isMobile);
-
-  // Desktop: full GSAP horizontal scroll
   useLayoutEffect(() => {
-    if (isMobile || !sectionRef.current || !containerRef.current) return;
-
     const section = sectionRef.current;
     const container = containerRef.current;
-    const progressBar = progressRef.current;
-    const totalWidth = container.scrollWidth;
-    const scrollAmount = totalWidth - window.innerWidth;
+    if (!section || !container) return;
+
+    // Normalize scroll for iOS — prevents rubber-band fighting the pin
+    ScrollTrigger.normalizeScroll(true);
 
     const ctx = gsap.context(() => {
-      // ── MAIN HORIZONTAL SCROLL ──────────────────────────────
+      const scrollAmount = container.scrollWidth - window.innerWidth;
+
+      // ── MAIN HORIZONTAL SCROLL ────────────────────────────────
       const scrollTween = gsap.to(container, {
         x: -scrollAmount,
         ease: 'none',
@@ -139,46 +90,38 @@ export default function KorantisStorySection() {
           id: 'horizontalScroll',
           trigger: section,
           start: 'top top',
-          end: () => `+=${scrollAmount}`,
+          end: () => `+=${container.scrollWidth - window.innerWidth}`,
           scrub: 1,
           pin: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
           onUpdate: (self) => {
-            if (progressBar) {
-              gsap.to(progressBar, { width: `${self.progress * 100}%`, duration: 0.1 });
-            }
+            const bar = progressRef.current;
+            if (bar) bar.style.width = `${self.progress * 100}%`;
           },
         },
       });
 
-      // ── PARALLAX DEPTH LAYERS ───────────────────────────────
-      if (starsRef.current) {
-        gsap.to(starsRef.current, {
-          x: 60, ease: 'none',
+      // ── PARALLAX DEPTH LAYERS ─────────────────────────────────
+      [
+        { ref: starsRef, x: 60 },
+        { ref: midRef,   x: 140 },
+        { ref: nearRef,  x: 240 },
+      ].forEach(({ ref, x }) => {
+        if (!ref.current) return;
+        gsap.to(ref.current, {
+          x, ease: 'none',
           scrollTrigger: { trigger: section, containerAnimation: scrollTween, scrub: 1 },
         });
-      }
-      if (midRef.current) {
-        gsap.to(midRef.current, {
-          x: 140, ease: 'none',
-          scrollTrigger: { trigger: section, containerAnimation: scrollTween, scrub: 1 },
-        });
-      }
-      if (nearRef.current) {
-        gsap.to(nearRef.current, {
-          x: 240, ease: 'none',
-          scrollTrigger: { trigger: section, containerAnimation: scrollTween, scrub: 1 },
-        });
-      }
+      });
 
-      // ── TEXT CINEMATIC REVEAL ───────────────────────────────
-      gsap.utils.toArray<HTMLDivElement>('.story-panel').forEach((panel) => {
+      // ── TEXT CINEMATIC REVEAL ─────────────────────────────────
+      gsap.utils.toArray<HTMLElement>('.story-panel').forEach((panel) => {
         const content = panel.querySelector('.story-content');
         if (!content) return;
         gsap.fromTo(
           content,
-          { opacity: 0, y: 100, scale: 0.9 },
+          { opacity: 0, y: 60, scale: 0.92 },
           {
             opacity: 1, y: 0, scale: 1, ease: 'power2.out',
             scrollTrigger: {
@@ -189,26 +132,26 @@ export default function KorantisStorySection() {
         );
       });
 
-      // ── PANEL SCALE + FOCUS ─────────────────────────────────
-      gsap.utils.toArray<HTMLDivElement>('.story-panel').forEach((panel) => {
+      // ── PANEL SCALE + FOCUS ───────────────────────────────────
+      gsap.utils.toArray<HTMLElement>('.story-panel').forEach((panel) => {
         gsap.fromTo(
           panel,
-          { scale: 0.85, opacity: 0.55 },
+          { scale: 0.88, opacity: 0.5 },
           {
             scale: 1, opacity: 1, ease: 'power1.out',
             scrollTrigger: {
               trigger: panel, containerAnimation: scrollTween,
-              start: 'left 60%', end: 'center center', scrub: 1,
+              start: 'left 65%', end: 'center center', scrub: 1,
             },
           }
         );
       });
 
-      // ── GLOW PULSE ──────────────────────────────────────────
-      gsap.utils.toArray<HTMLDivElement>('.story-glow').forEach((glow) => {
+      // ── GLOW PULSE ────────────────────────────────────────────
+      gsap.utils.toArray<HTMLElement>('.story-glow').forEach((glow) => {
         gsap.fromTo(
           glow,
-          { opacity: 0.3, scale: 0.8 },
+          { opacity: 0.25, scale: 0.8 },
           {
             opacity: 0.7, scale: 1.1, ease: 'none',
             scrollTrigger: {
@@ -220,8 +163,11 @@ export default function KorantisStorySection() {
       });
     }, sectionRef);
 
-    return () => ctx.revert();
-  }, [isMobile]);
+    return () => {
+      ctx.revert();
+      ScrollTrigger.normalizeScroll(false);
+    };
+  }, []);
 
   return (
     <section
@@ -229,24 +175,12 @@ export default function KorantisStorySection() {
       className="relative w-full overflow-hidden bg-black text-white"
       aria-label="Korantis story"
     >
-      {/* ── PROGRESS BAR (desktop only) ───────────────────────── */}
-      <div className="fixed top-0 left-0 z-50 w-full h-[2px] bg-white/5 hidden md:block">
+      {/* ── PROGRESS BAR ─────────────────────────────────────────── */}
+      <div className="fixed top-0 left-0 z-50 w-full h-[2px] bg-white/5">
         <div ref={progressRef} className="h-full bg-white/80" style={{ width: '0%' }} />
       </div>
 
-      {/* ── MOBILE PANEL COUNTER ──────────────────────────────── */}
-      {isMobile && (
-        <div className="sticky top-14 z-40 flex items-center justify-between px-5 py-2 bg-black/70 backdrop-blur-sm border-b border-white/5 md:hidden">
-          <span className="font-mono text-xs uppercase tracking-[0.2em] text-neutral-500">
-            Korantis Story
-          </span>
-          <span className="font-mono text-xs text-neutral-600">
-            {PANELS.length} chapters
-          </span>
-        </div>
-      )}
-
-      {/* ── SPACE BACKGROUND (3 depth layers) ─────────────────── */}
+      {/* ── SPACE BACKGROUND (3 depth layers) ────────────────────── */}
       <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
         <div
           ref={starsRef}
@@ -280,68 +214,31 @@ export default function KorantisStorySection() {
         />
       </div>
 
-      {/* ── PANELS ────────────────────────────────────────────── */}
-      <div
-        ref={containerRef}
-        className={`relative z-10 flex ${isMobile ? 'flex-col w-full' : 'w-max'}`}
-      >
-        {PANELS.map((panel, i) => (
+      {/* ── PANELS ───────────────────────────────────────────────── */}
+      <div ref={containerRef} className="relative z-10 flex w-max">
+        {PANELS.map((panel) => (
           <div
             key={panel.num}
-            className={`story-panel relative flex items-center justify-center overflow-hidden ${panel.bg} ${
-              isMobile
-                ? 'w-full min-h-[100svh]'
-                : 'h-screen min-w-[100vw]'
-            }`}
+            className={`story-panel relative flex h-[100svh] min-w-[100vw] items-center justify-center overflow-hidden ${panel.bg}`}
           >
-            {/* Glow layer */}
             <div
               className="story-glow absolute inset-0"
               style={{ background: panel.glow }}
             />
 
-            {/* Content */}
             <div className="story-content relative z-10 mx-auto max-w-2xl px-6 text-center">
-              <span className={`font-mono text-sm uppercase tracking-[0.3em] ${panel.numColor}`}>
+              <span className={`font-mono text-xs sm:text-sm uppercase tracking-[0.3em] ${panel.numColor}`}>
                 {panel.num}
               </span>
-              <h2 className="mt-6 text-3xl sm:text-5xl md:text-7xl font-bold tracking-tight leading-none">
+              <h2 className="mt-5 text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-none">
                 {panel.title}
               </h2>
-              <p className="mt-5 text-base sm:text-lg md:text-xl text-neutral-400 leading-relaxed">
-                {panel.body.split('\n').map((line, j) => (
-                  <span key={j}>
-                    {line}
-                    {j < panel.body.split('\n').length - 1 && <br />}
-                  </span>
-                ))}
+              <p className="mt-5 text-sm sm:text-lg md:text-xl text-neutral-400 leading-relaxed">
+                {panel.body[0]}
+                <br />
+                {panel.body[1]}
               </p>
             </div>
-
-            {/* Mobile: scroll hint arrow (all panels except last) */}
-            {isMobile && i < PANELS.length - 1 && (
-              <div className="absolute bottom-8 left-0 right-0 flex flex-col items-center gap-1 text-neutral-700">
-                <svg
-                  className="w-5 h-5 animate-bounce"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={1.5}
-                  aria-hidden="true"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                </svg>
-              </div>
-            )}
-
-            {/* Mobile: "The end" marker on last panel */}
-            {isMobile && i === PANELS.length - 1 && (
-              <div className="absolute bottom-8 left-0 right-0 flex justify-center">
-                <span className="font-mono text-xs uppercase tracking-[0.2em] text-neutral-700">
-                  End of story
-                </span>
-              </div>
-            )}
           </div>
         ))}
       </div>
