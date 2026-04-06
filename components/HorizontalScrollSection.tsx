@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useLayoutEffect, useEffect, useState } from 'react';
+import { useLayoutEffect, useRef, useState, useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -9,53 +9,51 @@ gsap.registerPlugin(ScrollTrigger);
 /**
  * HorizontalScrollSection
  *
- * Pins a vertical-scrolling page and converts scroll into horizontal movement.
- * Each child panel takes 100vw. After the last panel, vertical scroll resumes.
+ * Pins a section and converts vertical scroll into horizontal movement.
+ * After the last panel, normal vertical scroll resumes.
  *
- * Mobile (<768px): horizontal effect disabled, panels stack vertically.
+ * - Uses gsap.context() for clean React cleanup
+ * - Disables on mobile (<768px) → panels stack vertically
+ * - Calculates totalWidth dynamically on refresh
+ * - No querySelector, refs only
  */
 export default function HorizontalScrollSection({
   panels,
-  className = '',
-  panelClassName = '',
 }: {
   panels: React.ReactNode[];
-  className?: string;
-  panelClassName?: string;
 }) {
   const sectionRef = useRef<HTMLElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const panelsRef = useRef<(HTMLDivElement | null)[]>([]);
   const ctxRef = useRef<gsap.Context | null>(null);
 
-  // Track viewport width to disable effect on mobile
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
-    window.addEventListener('resize', check);
+    window.addEventListener('resize', check, { passive: true });
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // GSAP animation — runs only on desktop
   useLayoutEffect(() => {
     if (isMobile || !sectionRef.current || !containerRef.current) return;
 
-    const container = containerRef.current;
     const section = sectionRef.current;
-    const totalWidth = container.scrollWidth - window.innerWidth;
+    const container = containerRef.current;
+    const totalScrollWidth = container.scrollWidth;
+    const scrollAmount = totalScrollWidth - window.innerWidth;
 
-    // Create a GSAP context for easy cleanup
     const ctx = gsap.context(() => {
       gsap.to(container, {
-        x: -totalWidth,
+        x: -scrollAmount,
         ease: 'none',
         scrollTrigger: {
           trigger: section,
-          pin: true,
+          start: 'top top',
+          end: `+=${scrollAmount}`,
           scrub: 1,
-          end: `+=${totalWidth}`,
+          pin: true,
+          anticipatePin: 1,
           invalidateOnRefresh: true,
         },
       });
@@ -65,24 +63,28 @@ export default function HorizontalScrollSection({
 
     return () => {
       ctx.revert();
+      ctxRef.current = null;
     };
   }, [isMobile, panels]);
 
   return (
     <section
       ref={sectionRef}
-      className={`overflow-hidden ${className}`}
+      className="relative w-full overflow-hidden"
       aria-label="Horizontal scroll section"
     >
       <div
         ref={containerRef}
-        className={`flex h-screen w-max ${isMobile ? '!flex-col !h-auto !w-full' : ''}`}
+        className={`flex ${isMobile ? '!flex-col !h-auto !w-full' : 'w-max'}`}
       >
         {panels.map((panel, i) => (
           <div
             key={i}
-            ref={(el) => { panelsRef.current[i] = el; }}
-            className={`flex h-screen min-w-[100vw] flex-col items-center justify-center p-8 ${isMobile ? '!min-w-full !min-h-[100svh]' : ''} ${panelClassName}`}
+            className={`${
+              isMobile
+                ? 'min-h-[100svh] w-full'
+                : 'h-screen min-w-[100vw]'
+            } flex flex-col items-center justify-center`}
           >
             {panel}
           </div>
