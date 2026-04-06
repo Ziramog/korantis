@@ -1,8 +1,8 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════
- * KORANTIS — Grid Background (Minimal)
+ * KORANTIS — Grid Background (Premium)
  * ═══════════════════════════════════════════════════════════════════════
- * Single canvas. Thin grid. Center fade. Micro parallax.
+ * Hierarchy: major lines every 4th, distance fade, micro breathing.
  * NO stars. NO particles. NO comets. NO noise.
  * ═══════════════════════════════════════════════════════════════════════
  */
@@ -43,6 +43,7 @@
 
   var offsetX = 0;
   var offsetY = 0;
+  var time = 0;
 
   /* ──────────────────────────────────────────────────────────────────
      DRAW
@@ -51,13 +52,22 @@
   function drawGrid() {
     ctx.clearRect(0, 0, w, h);
 
-    var size = 80;
-
-    ctx.strokeStyle = 'rgba(255,255,255,0.035)';
-    ctx.lineWidth = 0.5;
+    var size = 100;
+    var centerX = w / 2;
+    var centerY = h / 2;
+    var pulse = Math.sin(time) * 0.005;
 
     // Vertical lines
     for (var x = 0; x < w; x += size) {
+      var dist = Math.abs(x + offsetX - centerX) / w;
+      var isMajor = x % (size * 4) === 0;
+      var base = isMajor ? 0.06 : 0.025;
+      var lw = isMajor ? 0.8 : 0.4;
+      var opacity = base + (1 - dist) * (0.04 + pulse);
+
+      ctx.strokeStyle = 'rgba(255,255,255,' + opacity + ')';
+      ctx.lineWidth = lw;
+
       ctx.beginPath();
       ctx.moveTo(x + offsetX, 0);
       ctx.lineTo(x + offsetX, h);
@@ -66,19 +76,28 @@
 
     // Horizontal lines
     for (var y = 0; y < h; y += size) {
+      var distY = Math.abs(y + offsetY - centerY) / h;
+      var isMajorY = y % (size * 4) === 0;
+      var baseY = isMajorY ? 0.06 : 0.025;
+      var lwY = isMajorY ? 0.8 : 0.4;
+      var opacityY = baseY + (1 - distY) * (0.04 + pulse);
+
+      ctx.strokeStyle = 'rgba(255,255,255,' + opacityY + ')';
+      ctx.lineWidth = lwY;
+
       ctx.beginPath();
       ctx.moveTo(0, y + offsetY);
       ctx.lineTo(w, y + offsetY);
       ctx.stroke();
     }
 
-    // Center fade (depth)
+    // Soft center fade
     var gradient = ctx.createRadialGradient(
       w / 2, h / 2, 0,
-      w / 2, h / 2, w * 0.7
+      w / 2, h / 2, w * 0.9
     );
     gradient.addColorStop(0, 'rgba(0,0,0,0)');
-    gradient.addColorStop(1, 'rgba(0,0,0,0.6)');
+    gradient.addColorStop(1, 'rgba(0,0,0,0.4)');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, w, h);
   }
@@ -112,6 +131,7 @@
   var animId = null;
 
   function animate() {
+    time += 0.01;
     drawGrid();
     animId = requestAnimationFrame(animate);
   }

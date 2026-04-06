@@ -36,6 +36,7 @@ function BackgroundLayers({ awake: _awake }: { awake: boolean }) {
 
     let offsetX = 0;
     let offsetY = 0;
+    let time = 0;
 
     const onResize = () => {
       w = window.innerWidth;
@@ -57,36 +58,59 @@ function BackgroundLayers({ awake: _awake }: { awake: boolean }) {
     const drawGrid = () => {
       ctx.clearRect(0, 0, w, h);
 
-      const size = 80;
-      ctx.strokeStyle = 'rgba(255,255,255,0.035)';
-      ctx.lineWidth = 0.5;
+      const size = 100;
+      const centerX = w / 2;
+      const centerY = h / 2;
+
+      // Vertical lines
+      const pulse = Math.sin(time) * 0.005;
 
       for (let x = 0; x < w; x += size) {
+        const dist = Math.abs(x + offsetX - centerX) / w;
+        const isMajor = x % (size * 4) === 0;
+        const base = isMajor ? 0.06 : 0.025;
+        const lw = isMajor ? 0.8 : 0.4;
+        const opacity = base + (1 - dist) * (0.04 + pulse);
+
+        ctx.strokeStyle = `rgba(255,255,255,${opacity})`;
+        ctx.lineWidth = lw;
+
         ctx.beginPath();
         ctx.moveTo(x + offsetX, 0);
         ctx.lineTo(x + offsetX, h);
         ctx.stroke();
       }
 
+      // Horizontal lines
       for (let y = 0; y < h; y += size) {
+        const distY = Math.abs(y + offsetY - centerY) / h;
+        const isMajorY = y % (size * 4) === 0;
+        const baseY = isMajorY ? 0.06 : 0.025;
+        const lwY = isMajorY ? 0.8 : 0.4;
+        const opacityY = baseY + (1 - distY) * (0.04 + pulse);
+
+        ctx.strokeStyle = `rgba(255,255,255,${opacityY})`;
+        ctx.lineWidth = lwY;
+
         ctx.beginPath();
         ctx.moveTo(0, y + offsetY);
         ctx.lineTo(w, y + offsetY);
         ctx.stroke();
       }
 
-      // Center fade (depth)
+      // Soft center fade
       const gradient = ctx.createRadialGradient(
         w / 2, h / 2, 0,
-        w / 2, h / 2, w * 0.7
+        w / 2, h / 2, w * 0.9
       );
       gradient.addColorStop(0, 'rgba(0,0,0,0)');
-      gradient.addColorStop(1, 'rgba(0,0,0,0.6)');
+      gradient.addColorStop(1, 'rgba(0,0,0,0.4)');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, w, h);
     };
 
     const animate = () => {
+      time += 0.01;
       drawGrid();
       raf = requestAnimationFrame(animate);
     };
