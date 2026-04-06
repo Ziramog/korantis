@@ -20,6 +20,22 @@ const organizationSchema = {
 
 // ─── Background Depth Layers ─────────────────────────────────────────
 
+type Star = {
+  x: number;
+  y: number;
+  speed: number;
+  size: number;
+  alpha: number;
+};
+
+type Comet = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  length: number;
+};
+
 function BackgroundLayers({ awake }: { awake: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -34,111 +50,136 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
     canvas.width = w;
     canvas.height = h;
 
-    type Star = { x: number; y: number; vx: number; vy: number; size: number; alpha: number; };
-    type Comet = {
-      active: boolean; x: number; y: number; vx: number; vy: number;
-      life: number; maxLife: number; trail: { x: number; y: number }[];
+    // ── LAYER 2: STARFIELD ──────────────────────────────────────────
+    const stars: Star[] = [];
+    for (let i = 0; i < 140; i++) {
+      stars.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        speed: 0.05 + Math.random() * 0.25,
+        size: Math.random() * 1.2,
+        alpha: 0.2 + Math.random() * 0.4,
+      });
+    }
+
+    // ── LAYER 3: COMETS ─────────────────────────────────────────────
+    const comets: Comet[] = [];
+
+    const spawnComet = () => {
+      if (Math.random() > 0.98) {
+        comets.push({
+          x: Math.random() * w,
+          y: -50,
+          vx: 2 + Math.random() * 2,
+          vy: 3 + Math.random() * 3,
+          length: 80 + Math.random() * 120,
+        });
+      }
     };
 
-    // Small drifting dots
-    const stars: Star[] = Array.from({ length: 180 }, () => ({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      vx: (Math.random() - 0.5) * 0.12,
-      vy: (Math.random() - 0.5) * 0.12,
-      size: 0.4 + Math.random() * 0.7,
-      alpha: 0.2 + Math.random() * 0.55,
-    }));
+    // ── LAYER 1: GRID ───────────────────────────────────────────────
+    const drawGrid = (
+      ctx: CanvasRenderingContext2D,
+      w: number,
+      h: number,
+      offsetX: number,
+      offsetY: number
+    ) => {
+      const size = 60;
+      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      ctx.lineWidth = 0.5;
 
-    // Comets
-    const comets: Comet[] = [];
-    let cometTimer = 0;
-    let nextCometAt = 6000 + Math.random() * 10000;
+      for (let x = -size; x < w + size; x += size) {
+        ctx.beginPath();
+        ctx.moveTo(x + (offsetX % size), 0);
+        ctx.lineTo(x + (offsetX % size), h);
+        ctx.stroke();
+      }
 
-    const spawnComet = (): Comet => {
-      const fromLeft = Math.random() > 0.5;
-      const drift = (Math.random() - 0.5) * 0.5;
-      const speed = 1.5 + Math.random() * 2;
-      return {
-        active: true,
-        x: fromLeft ? -20 : w + 20,
-        y: Math.random() * h * 0.7,
-        vx: fromLeft ? speed : -speed,
-        vy: Math.sin(drift) * speed * 0.3,
-        life: 0, maxLife: 80 + Math.random() * 60,
-        trail: [],
-      };
+      for (let y = -size; y < h + size; y += size) {
+        ctx.beginPath();
+        ctx.moveTo(0, y + (offsetY % size));
+        ctx.lineTo(w, y + (offsetY % size));
+        ctx.stroke();
+      }
     };
 
     const onResize = () => {
-      w = window.innerWidth; h = window.innerHeight;
-      canvas.width = w; canvas.height = h;
+      w = window.innerWidth;
+      h = window.innerHeight;
+      canvas.width = w;
+      canvas.height = h;
+
+      // Respawn stars on resize
+      stars.length = 0;
+      for (let i = 0; i < 140; i++) {
+        stars.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          speed: 0.05 + Math.random() * 0.25,
+          size: Math.random() * 1.2,
+          alpha: 0.2 + Math.random() * 0.4,
+        });
+      }
     };
     window.addEventListener('resize', onResize);
 
     let raf = 0;
-    let lastTime = performance.now();
 
-    const loop = (now: number) => {
-      const dt = Math.min(now - lastTime, 50);
-      lastTime = now;
+    const loop = () => {
       ctx.clearRect(0, 0, w, h);
 
-      const alphaMult = awake ? 1.3 : 1;
+      const alphaMult = awake ? 1 : 0.7;
 
-      // Dots — drift and wrap
+      // Subtle scroll reaction
+      const scrollOffset = window.scrollY * 0.05;
+
+      // ── LAYER 1: GRID ─────────────────────────────────────────────
+      drawGrid(ctx, w, h, scrollOffset, scrollOffset * 0.3);
+
+      // ── LAYER 2: STARS ────────────────────────────────────────────
       for (const s of stars) {
-        s.x += s.vx;
-        s.y += s.vy;
-        if (s.x < 0) s.x = w;
+        s.x += 0.1 * s.speed;
+        s.y += 0.05 * s.speed;
+
         if (s.x > w) s.x = 0;
-        if (s.y < 0) s.y = h;
         if (s.y > h) s.y = 0;
 
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(200, 215, 255, ${s.alpha * alphaMult})`;
+        ctx.fillStyle = `rgba(220,230,255,${s.alpha * alphaMult})`;
         ctx.fill();
       }
 
-      // Comets — dot trail, plain head
-      cometTimer += dt;
-      if (cometTimer > nextCometAt && comets.filter(c => c.active).length === 0) {
-        comets.push(spawnComet());
-        cometTimer = 0;
-        nextCometAt = 6000 + Math.random() * 10000;
-      }
+      // ── LAYER 3: COMETS ───────────────────────────────────────────
+      spawnComet();
 
       for (let i = comets.length - 1; i >= 0; i--) {
         const c = comets[i];
-        if (!c.active) { comets.splice(i, 1); continue; }
-        c.life++;
-        c.x += c.vx; c.y += c.vy;
+        c.x += c.vx;
+        c.y += c.vy;
 
-        const fadeIn  = Math.min(c.life / 10, 1);
-        const fadeOut = 1 - Math.pow(c.life / c.maxLife, 2);
-        const alpha   = fadeIn * fadeOut;
+        const grad = ctx.createLinearGradient(
+          c.x,
+          c.y,
+          c.x - c.vx * 20,
+          c.y - c.vy * 20
+        );
+        grad.addColorStop(0, 'rgba(255,255,255,0.9)');
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
 
-        c.trail.unshift({ x: c.x, y: c.y });
-        if (c.trail.length > 28) c.trail.pop();
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1;
 
-        for (let t = 1; t < c.trail.length; t++) {
-          const p = c.trail[t];
-          const ta = alpha * (1 - t / c.trail.length) * 0.4;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, 1.4 * (1 - t / c.trail.length), 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(200, 220, 255, ${ta})`;
-          ctx.fill();
-        }
-
-        // head — plain dot
         ctx.beginPath();
-        ctx.arc(c.x, c.y, 1.8, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(230, 240, 255, ${alpha})`;
-        ctx.fill();
+        ctx.moveTo(c.x, c.y);
+        ctx.lineTo(c.x - c.vx * c.length, c.y - c.vy * c.length);
+        ctx.stroke();
 
-        if (c.life > c.maxLife || c.x < -100 || c.x > w + 100 || c.y < -100 || c.y > h + 100)
-          c.active = false;
+        // Remove off-screen comets
+        if (c.x > w + 200 || c.y > h + 200 || c.x < -200 || c.y < -200) {
+          comets.splice(i, 1);
+        }
       }
 
       raf = requestAnimationFrame(loop);
@@ -152,15 +193,11 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
   }, [awake]);
 
   return (
-    <>
-      <canvas
-        ref={canvasRef}
-        aria-hidden="true"
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 1, pointerEvents: 'none' }}
-      />
-      <div className="korantis-atmosphere-grid" aria-hidden="true" />
-      <div className="korantis-vignette" aria-hidden="true" />
-    </>
+    <canvas
+      ref={canvasRef}
+      aria-hidden="true"
+      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 1, pointerEvents: 'none' }}
+    />
   );
 }
 

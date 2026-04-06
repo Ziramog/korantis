@@ -2,48 +2,19 @@
  * ═══════════════════════════════════════════════════════════════════════
  * KORANTIS — Atmosphere Stylesheet
  * ═══════════════════════════════════════════════════════════════════════
- * Grid. Stars (canvas). Comets. Vignette. Logo.
- * No intro. No glows. No decorative overlays.
+ * 3-Layer Visual System:
+ *   1. Grid    — structure (canvas-drawn, barely visible)
+ *   2. Stars   — depth (canvas-drawn, calm drift)
+ *   3. Comets  — events (canvas-drawn, rare diagonal streaks)
  *
  * Depth z-index map:
- *   0    — grid background
- *   1    — stars canvas (includes comets)
- *   2    — vignette (edge darkening)
+ *   1    — space canvas (grid + stars + comets)
  *   10+  — content (main)
  * ═══════════════════════════════════════════════════════════════════════
  */
 
 /* ──────────────────────────────────────────────────────────────────────
-   1. GRID — single layer, thin lines, opacity 0.04 max
-   ────────────────────────────────────────────────────────────────────── */
-
-.korantis-atmosphere-grid {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.04;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
-  background-size: 80px 80px;
-  transform: translate(
-    var(--atmosphere-grid-scroll-x, 0px),
-    var(--atmosphere-grid-scroll-y, 0px)
-  );
-  will-change: transform;
-  /* Grid fades toward edges — coordinate system recedes into void */
-  -webkit-mask-image: radial-gradient(ellipse 60% 55% at 50% 50%, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.15) 50%, transparent 80%);
-  mask-image: radial-gradient(ellipse 60% 55% at 50% 50%, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.15) 50%, transparent 80%);
-}
-
-/* No secondary grid. Removed. */
-.korantis-atmosphere-grid::after {
-  display: none;
-}
-
-/* ──────────────────────────────────────────────────────────────────────
-   2. PARTICLES CANVAS — managed by space.js
+   1. SPACE CANVAS — managed by space.js (3-layer system)
    ────────────────────────────────────────────────────────────────────── */
 
 .korantis-space-canvas {
@@ -56,29 +27,7 @@
 }
 
 /* ──────────────────────────────────────────────────────────────────────
-   3. VIGNETTE — natural edge fall-off, feels like distance not overlay
-   ────────────────────────────────────────────────────────────────────── */
-
-.korantis-vignette {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 2;
-  background: radial-gradient(
-    ellipse at center,
-    transparent 30%,
-    rgba(0, 0, 0, 0.15) 50%,
-    rgba(0, 0, 0, 0.55) 80%,
-    rgba(0, 0, 0, 0.85) 100%
-  );
-}
-
-.korantis-hero-entry {
-  will-change: opacity, transform;
-}
-
-/* ──────────────────────────────────────────────────────────────────────
-   5. CONTENT Z-INDEX
+   2. CONTENT Z-INDEX
    ────────────────────────────────────────────────────────────────────── */
 
 .korantis-main-content {
@@ -87,17 +36,17 @@
 }
 
 /* ──────────────────────────────────────────────────────────────────────
-   6. REDUCED MOTION
+   3. REDUCED MOTION
    ────────────────────────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
-  .korantis-atmosphere-grid {
-    transform: none;
+  .korantis-space-canvas {
+    display: none;
   }
 }
 
 /* ──────────────────────────────────────────────────────────────────────
-   7. LOGO — 84px, full opacity, crisp
+   4. LOGO — 84px, full opacity, crisp
    ────────────────────────────────────────────────────────────────────── */
 
 .korantis-nav-logo {
