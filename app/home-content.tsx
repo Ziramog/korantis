@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import type { ContactFormData } from '@/lib/types';
+import { LangProvider, useLang } from '@/lib/i18n';
 import KorantisStorySection from '@/components/KorantisStorySection';
 
 // ─── Brand ────────────────────────────────────────────────────────────
@@ -18,8 +19,6 @@ const organizationSchema = {
 };
 
 // ─── Background Depth Layers ─────────────────────────────────────────
-// Single harmonious space field. Stars as dots. Occasional comets with tails.
-// LERP parallax gives depth — environment reacts, never snaps.
 
 function BackgroundLayers({ awake }: { awake: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -43,7 +42,6 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
     };
     window.addEventListener('resize', resize);
 
-    // LERP state — subtle cursor offset for the whole field
     let targetX = 0;
     let targetY = 0;
     let fieldX = 0;
@@ -58,13 +56,8 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
     const centerY = h / 2;
 
     type Star = {
-      x: number;
-      y: number;
-      vx: number;
-      vy: number;
-      depth: number;
-      size: number;
-      baseAlpha: number;
+      x: number; y: number; vx: number; vy: number;
+      depth: number; size: number; baseAlpha: number;
     };
 
     const stars: Star[] = [];
@@ -84,16 +77,9 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
       });
     }
 
-    // Comets — rare, streaking, with fading tails
     type Comet = {
-      active: boolean;
-      x: number;
-      y: number;
-      vx: number;
-      vy: number;
-      life: number;
-      maxLife: number;
-      trail: { x: number; y: number; alpha: number }[];
+      active: boolean; x: number; y: number; vx: number; vy: number;
+      life: number; maxLife: number; trail: { x: number; y: number; alpha: number }[];
     };
 
     const comets: Comet[] = [];
@@ -118,8 +104,6 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
 
     let raf = 0;
     let lastTime = performance.now();
-
-    // Burst system — brief acceleration every 6–10s
     let speedMultiplier = 1;
     let nextBurstAt = 6000 + Math.random() * 4000;
     let burstTimer = 0;
@@ -128,14 +112,11 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
     const loop = (now: number) => {
       const dt = Math.min(now - lastTime, 50);
       lastTime = now;
-
       ctx.clearRect(0, 0, w, h);
 
-      // Subtle field offset from cursor
       fieldX += (targetX - fieldX) * 0.05;
       fieldY += (targetY - fieldY) * 0.05;
 
-      // Burst timing
       burstTimer += dt;
       if (!burstActive && burstTimer > nextBurstAt) {
         burstActive = true;
@@ -151,29 +132,22 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
 
       const awakeBoost = awake ? 1.2 : 1;
 
-      // Update & draw stars — pure radial motion from center
-      for (let s of stars) {
+      for (const s of stars) {
         const dx = s.x - centerX;
         const dy = s.y - centerY;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         s.x += s.vx * (1 + s.depth * 2) * speedMultiplier * awakeBoost;
         s.y += s.vy * (1 + s.depth * 2) * speedMultiplier * awakeBoost;
-
-        // Perspective scale — stars grow as they move outward
         s.size = 0.5 + s.depth * 2 + distance * 0.002;
 
-        // Reset when off screen
-        if (
-          s.x < -20 || s.x > w + 20 ||
-          s.y < -20 || s.y > h + 20
-        ) {
+        if (s.x < -20 || s.x > w + 20 || s.y < -20 || s.y > h + 20) {
           s.x = centerX;
           s.y = centerY;
-          const angle = Math.random() * Math.PI * 2;
-          const speed = 0.2 + Math.random() * 0.8;
-          s.vx = Math.cos(angle) * speed;
-          s.vy = Math.sin(angle) * speed;
+          const a = Math.random() * Math.PI * 2;
+          const sp = 0.2 + Math.random() * 0.8;
+          s.vx = Math.cos(a) * sp;
+          s.vy = Math.sin(a) * sp;
         }
 
         const alpha = s.baseAlpha * (awake ? 1.4 : 1);
@@ -183,7 +157,6 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
         ctx.fill();
       }
 
-      // Comet spawning
       cometTimer += dt;
       if (cometTimer > nextCometAt && comets.filter(c => c.active).length < 1) {
         comets.push(spawnComet());
@@ -191,25 +164,18 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
         nextCometAt = 4000 + Math.random() * 8000;
       }
 
-      // Update & draw comets
       for (let i = comets.length - 1; i >= 0; i--) {
         const c = comets[i];
         if (!c.active) { comets.splice(i, 1); continue; }
-
         c.life++;
         c.x += c.vx;
         c.y += c.vy;
-
         const progress = c.life / c.maxLife;
         const fadeIn = Math.min(c.life / 10, 1);
         const fadeOut = 1 - Math.pow(progress, 2);
         const alpha = fadeIn * fadeOut;
-
-        // Trail
         c.trail.unshift({ x: c.x, y: c.y, alpha });
         if (c.trail.length > 25) c.trail.pop();
-
-        // Draw tail
         for (let t = 1; t < c.trail.length; t++) {
           const p = c.trail[t];
           const tailAlpha = p.alpha * (1 - t / c.trail.length) * 0.4;
@@ -218,13 +184,10 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
           ctx.fillStyle = `rgba(180, 210, 255, ${tailAlpha})`;
           ctx.fill();
         }
-
-        // Head
         ctx.beginPath();
         ctx.arc(c.x, c.y, 2, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(220, 235, 255, ${alpha * 0.9})`;
         ctx.fill();
-
         if (c.life > c.maxLife || c.x < -100 || c.x > w + 100 || c.y < -100 || c.y > h + 100) {
           c.active = false;
         }
@@ -251,47 +214,33 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
 
 // ─── Contact Form Hook ────────────────────────────────────────────────
 
-interface FormErrors {
-  name?: string;
-  email?: string;
-  message?: string;
-}
+interface FormErrors { name?: string; email?: string; message?: string; }
 
 function useContactForm() {
-  const [formData, setFormData] = useState<ContactFormData>({
-    name: '',
-    email: '',
-    message: '',
-  });
+  const { t } = useLang();
+  const [formData, setFormData] = useState<ContactFormData>({ name: '', email: '', message: '' });
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   const validate = useCallback((data: ContactFormData): FormErrors => {
     const e: FormErrors = {};
-    if (!data.name || data.name.trim().length < 2) e.name = 'Name must be at least 2 characters';
-    if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) e.email = 'Enter a valid email';
-    if (!data.message || data.message.trim().length < 10) e.message = 'Message must be at least 10 characters';
+    if (!data.name || data.name.trim().length < 2) e.name = t.contact.validation.name;
+    if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) e.email = t.contact.validation.email;
+    if (!data.message || data.message.trim().length < 10) e.message = t.contact.validation.message;
     return e;
-  }, []);
+  }, [t]);
 
   const onChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => {
-      const next = { ...prev };
-      delete next[name as keyof FormErrors];
-      return next;
-    });
+    setErrors((prev) => { const next = { ...prev }; delete next[name as keyof FormErrors]; return next; });
   }, []);
 
   const onSubmit = useCallback(async (e: FormEvent) => {
     e.preventDefault();
     const v = validate(formData);
-    if (Object.keys(v).length > 0) {
-      setErrors(v);
-      return;
-    }
+    if (Object.keys(v).length > 0) { setErrors(v); return; }
     setSubmitting(true);
     setErrors({});
     try {
@@ -311,7 +260,7 @@ function useContactForm() {
     setTimeout(() => setStatus('idle'), 5000);
   }, [formData, validate]);
 
-  return { formData, errors, submitting, status, onChange, onSubmit, resetStatus: () => setStatus('idle') };
+  return { formData, errors, submitting, status, onChange, onSubmit };
 }
 
 // ─── Icons ────────────────────────────────────────────────────────────
@@ -325,7 +274,6 @@ function IconArchitecture() {
     </svg>
   );
 }
-
 function IconIntelligence() {
   return (
     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round">
@@ -334,7 +282,6 @@ function IconIntelligence() {
     </svg>
   );
 }
-
 function IconControl() {
   return (
     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round">
@@ -343,7 +290,6 @@ function IconControl() {
     </svg>
   );
 }
-
 function IconArrow() {
   return (
     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -351,7 +297,6 @@ function IconArrow() {
     </svg>
   );
 }
-
 function IconMenu() {
   return (
     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round">
@@ -359,7 +304,6 @@ function IconMenu() {
     </svg>
   );
 }
-
 function IconClose() {
   return (
     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round">
@@ -367,7 +311,6 @@ function IconClose() {
     </svg>
   );
 }
-
 function IconCheck() {
   return (
     <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
@@ -375,7 +318,6 @@ function IconCheck() {
     </svg>
   );
 }
-
 function IconAlert() {
   return (
     <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
@@ -383,7 +325,6 @@ function IconAlert() {
     </svg>
   );
 }
-
 function Spinner() {
   return (
     <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
@@ -393,7 +334,7 @@ function Spinner() {
   );
 }
 
-// ─── Shared Section Divider ──────────────────────────────────────────
+// ─── Shared ───────────────────────────────────────────────────────────
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -404,19 +345,9 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ─── K Logo Icon — matches /korantisicon.svg ─────────────────────────
-// Single source of truth for the K icon across the app.
-// Paths: #k-stem, #k-upper, #k-lower — animation-ready.
-
 function KLogoIcon({ className }: { className?: string }) {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 64 64"
-      fill="none"
-      className={className}
-      aria-hidden="true"
-    >
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" className={className} aria-hidden="true">
       <g id="korantis-k" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path id="k-stem" d="M16 8 L16 56" />
         <path id="k-upper" d="M16 32 L48 8" />
@@ -426,51 +357,52 @@ function KLogoIcon({ className }: { className?: string }) {
   );
 }
 
-// ─── Header ───────────────────────────────────────────────────────────
+// ─── Lang Toggle ──────────────────────────────────────────────────────
 
-interface HeaderProps {
-  menuOpen: boolean;
-  onToggle: () => void;
+function LangToggle() {
+  const { lang, toggle } = useLang();
+  return (
+    <button
+      onClick={toggle}
+      aria-label={lang === 'en' ? 'Cambiar a español' : 'Switch to English'}
+      className="flex items-center gap-1 font-mono text-xs uppercase tracking-[0.15em] text-ink-subtle hover:text-ink transition-colors duration-300 select-none"
+    >
+      <span className={lang === 'en' ? 'text-ink' : 'text-ink-subtle'}>EN</span>
+      <span className="text-ink-subtle/40">·</span>
+      <span className={lang === 'es' ? 'text-ink' : 'text-ink-subtle'}>ES</span>
+    </button>
+  );
 }
 
+// ─── Header ───────────────────────────────────────────────────────────
+
+interface HeaderProps { menuOpen: boolean; onToggle: () => void; }
+
 function Header({ menuOpen, onToggle }: HeaderProps) {
+  const { t } = useLang();
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-canvas/80 backdrop-blur-md border-b border-border/50" role="banner">
       <div className="container flex items-center justify-between h-14">
 
-
         <nav className="hidden md:flex items-center gap-10" aria-label="Main navigation">
-          <a href="#layers" className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">
-            Layers
-          </a>
-          <a href="#about" className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">
-            About
-          </a>
-          <a href="#contact" className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">
-            Contact
-          </a>
+          <a href="#layers" className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">{t.nav.layers}</a>
+          <a href="#about"  className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">{t.nav.about}</a>
+          <a href="#contact" className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">{t.nav.contact}</a>
         </nav>
 
-        <button
-          className="md:hidden p-2 text-ink-subtle hover:text-ink transition-colors"
-          onClick={onToggle}
-          aria-expanded={menuOpen}
-          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-        >
+        <LangToggle />
+
+        <button className="md:hidden p-2 text-ink-subtle hover:text-ink transition-colors" onClick={onToggle} aria-expanded={menuOpen} aria-label={menuOpen ? 'Close menu' : 'Open menu'}>
           {menuOpen ? <IconClose /> : <IconMenu />}
         </button>
       </div>
 
-      <nav
-        className={`md:hidden bg-canvas border-t border-border overflow-hidden transition-all duration-300 ${
-          menuOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'
-        }`}
-        aria-hidden={!menuOpen}
-      >
+      <nav className={`md:hidden bg-canvas border-t border-border overflow-hidden transition-all duration-300 ${menuOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'}`} aria-hidden={!menuOpen}>
         <div className="container py-2">
-          <a href="#layers" className="block py-3 px-4 text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle border-b border-border hover:text-ink transition-colors" onClick={onToggle}>Layers</a>
-          <a href="#about" className="block py-3 px-4 text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle border-b border-border hover:text-ink transition-colors" onClick={onToggle}>About</a>
-          <a href="#contact" className="block py-3 px-4 text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle hover:text-ink transition-colors" onClick={onToggle}>Contact</a>
+          <a href="#layers"  className="block py-3 px-4 text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle border-b border-border hover:text-ink transition-colors" onClick={onToggle}>{t.nav.layers}</a>
+          <a href="#about"   className="block py-3 px-4 text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle border-b border-border hover:text-ink transition-colors" onClick={onToggle}>{t.nav.about}</a>
+          <a href="#contact" className="block py-3 px-4 text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle hover:text-ink transition-colors" onClick={onToggle}>{t.nav.contact}</a>
+          <div className="py-3 px-4"><LangToggle /></div>
         </div>
       </nav>
     </header>
@@ -479,56 +411,30 @@ function Header({ menuOpen, onToggle }: HeaderProps) {
 
 // ─── Hero ─────────────────────────────────────────────────────────────
 
-interface HeroSectionProps {
-  awake: boolean;
-  onActivate: () => void;
-}
-
-function HeroSection({ awake, onActivate }: HeroSectionProps) {
+function HeroSection({ awake, onActivate }: { awake: boolean; onActivate: () => void }) {
+  const { t } = useLang();
   return (
-    <section
-      className="relative min-h-screen flex items-center transition-all duration-1000"
-      aria-labelledby="hero-heading"
-      onMouseMove={onActivate}
-      onClick={onActivate}
-      style={{ opacity: awake ? 1 : 0.7 }}
-    >
+    <section className="relative min-h-screen flex items-center transition-all duration-1000" aria-labelledby="hero-heading" onMouseMove={onActivate} onClick={onActivate} style={{ opacity: awake ? 1 : 0.7 }}>
       <div className="container relative">
         <div className="max-w-3xl">
           <div className="flex items-center gap-3 mb-10">
             <div className="w-8 h-px bg-border" />
-            <p className="text-xs font-mono uppercase tracking-[0.2em] text-ink-subtle">
-              Systems Infrastructure
-            </p>
+            <p className="text-xs font-mono uppercase tracking-[0.2em] text-ink-subtle">{t.hero.label}</p>
           </div>
-
           <h1 id="hero-heading" className="text-balance transition-all duration-700" style={{ fontSize: 'clamp(2.5rem, 5.5vw, 4rem)', lineHeight: 1.05, letterSpacing: '-0.03em', fontWeight: 700 }}>
-            We build systems<br />that run companies.
+            {t.hero.heading1}<br />{t.hero.heading2}
           </h1>
-
           <p className="mt-8 text-base text-ink-muted leading-relaxed max-w-lg text-balance transition-all duration-700" style={{ opacity: awake ? 1 : 0.6 }}>
-            Most companies don&apos;t scale because their systems don&apos;t. We design the operational infrastructure that makes companies scale.
+            {t.hero.body}
           </p>
-
           <div className="mt-10 flex flex-wrap items-center gap-4">
-            <a
-              href="#layers"
-              className="korantis-btn"
-            >
-              Enter System
-            </a>
-            <a
-              href="#layers"
-              className="group inline-flex items-center gap-2 text-sm text-ink-muted transition-colors duration-300 hover:text-ink"
-            >
-              Explore layers
-              <IconArrow />
+            <a href="#layers" className="korantis-btn">{t.hero.ctaPrimary}</a>
+            <a href="#layers" className="group inline-flex items-center gap-2 text-sm text-ink-muted transition-colors duration-300 hover:text-ink">
+              {t.hero.ctaSecondary} <IconArrow />
             </a>
           </div>
         </div>
       </div>
-
-      {/* Scroll indicator */}
       <div className="absolute bottom-8 left-0 right-0 flex justify-center">
         <div className="w-px h-12 bg-gradient-to-b from-border to-transparent" />
       </div>
@@ -538,45 +444,29 @@ function HeroSection({ awake, onActivate }: HeroSectionProps) {
 
 // ─── System Layers ────────────────────────────────────────────────────
 
-const LAYERS = [
-  {
-    Icon: IconArchitecture,
-    code: '001',
-    title: 'Systems Architecture',
-    description: 'We design the structural foundation of your operations — how data flows, how teams connect, how decisions cascade.',
-  },
-  {
-    Icon: IconIntelligence,
-    code: '002',
-    title: 'Operational Intelligence',
-    description: 'Real-time visibility into how your systems perform. Patterns surfaced. Bottlenecks identified. Decisions accelerated.',
-  },
-  {
-    Icon: IconControl,
-    code: '003',
-    title: 'Process Control',
-    description: 'Governance frameworks that keep systems running as intended. Compliance, quality, and consistency at scale.',
-  },
-] as const;
+const LAYER_ICONS = [IconArchitecture, IconIntelligence, IconControl] as const;
 
 function LayersSection() {
+  const { t } = useLang();
   return (
     <section id="layers" className="section-padding border-t border-border" aria-labelledby="layers-heading">
       <div className="container">
-        <SectionLabel>What we build</SectionLabel>
-        <h2 id="layers-heading" className="text-2xl font-medium mb-16">System Layers</h2>
-
+        <SectionLabel>{t.layers.label}</SectionLabel>
+        <h2 id="layers-heading" className="text-2xl font-medium mb-16">{t.layers.heading}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border">
-          {LAYERS.map((layer) => (
-            <article key={layer.code} className="bg-canvas p-8 transition-colors duration-500 hover:border-t hover:border-violet-500/10" style={{ background: 'var(--color-canvas)' }}>
-              <div className="flex items-center gap-3 mb-6">
-                <layer.Icon />
-                <span className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle">{layer.code}</span>
-              </div>
-              <h3 className="text-lg font-medium mb-3 text-ink">{layer.title}</h3>
-              <p className="text-sm text-ink-muted leading-relaxed">{layer.description}</p>
-            </article>
-          ))}
+          {t.layers.items.map((layer, i) => {
+            const Icon = LAYER_ICONS[i];
+            return (
+              <article key={layer.code} className="bg-canvas p-8 transition-colors duration-500 hover:border-t hover:border-violet-500/10" style={{ background: 'var(--color-canvas)' }}>
+                <div className="flex items-center gap-3 mb-6">
+                  <Icon />
+                  <span className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle">{layer.code}</span>
+                </div>
+                <h3 className="text-lg font-medium mb-3 text-ink">{layer.title}</h3>
+                <p className="text-sm text-ink-muted leading-relaxed">{layer.description}</p>
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -586,17 +476,14 @@ function LayersSection() {
 // ─── Problem ──────────────────────────────────────────────────────────
 
 function ProblemSection() {
+  const { t } = useLang();
   return (
     <section className="section-padding border-t border-border" aria-labelledby="problem-heading">
       <div className="container">
         <div className="max-w-2xl">
-          <SectionLabel>The Problem</SectionLabel>
-          <h2 id="problem-heading" className="text-2xl md:text-3xl font-medium leading-snug text-balance">
-            Most companies don&apos;t scale because their systems don&apos;t.
-          </h2>
-          <p className="mt-6 text-base text-ink-muted leading-relaxed text-balance">
-            Tools don&apos;t scale companies. Systems do. Most organizations layer software on top of broken processes and wonder why nothing changes. We start where most stop — at the architecture level.
-          </p>
+          <SectionLabel>{t.problem.label}</SectionLabel>
+          <h2 id="problem-heading" className="text-2xl md:text-3xl font-medium leading-snug text-balance">{t.problem.heading}</h2>
+          <p className="mt-6 text-base text-ink-muted leading-relaxed text-balance">{t.problem.body}</p>
         </div>
       </div>
     </section>
@@ -605,21 +492,15 @@ function ProblemSection() {
 
 // ─── Outcome ──────────────────────────────────────────────────────────
 
-const OUTCOMES = [
-  { number: '01', label: 'Less manual work', description: 'Systems that execute, not just track.' },
-  { number: '02', label: 'Faster execution', description: 'Decisions made in seconds, not weeks.' },
-  { number: '03', label: 'Scalable operations', description: 'Infrastructure that grows with you.' },
-];
-
 function OutcomeSection() {
+  const { t } = useLang();
   return (
     <section className="section-padding border-t border-border" aria-labelledby="outcome-heading">
       <div className="container">
-        <SectionLabel>The Outcome</SectionLabel>
-        <h2 id="outcome-heading" className="text-2xl font-medium mb-16">What changes</h2>
-
+        <SectionLabel>{t.outcomes.label}</SectionLabel>
+        <h2 id="outcome-heading" className="text-2xl font-medium mb-16">{t.outcomes.heading}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-          {OUTCOMES.map((item) => (
+          {t.outcomes.items.map((item) => (
             <div key={item.number}>
               <span className="text-xs font-mono text-ink-subtle">{item.number}</span>
               <h3 className="text-lg font-medium mt-3 mb-2 text-ink">{item.label}</h3>
@@ -635,83 +516,54 @@ function OutcomeSection() {
 // ─── About ────────────────────────────────────────────────────────────
 
 function AboutSection() {
+  const { t } = useLang();
   return (
     <section id="about" className="section-padding border-t border-border" aria-labelledby="about-heading">
       <div className="container">
         <div className="max-w-2xl">
-          <SectionLabel>About</SectionLabel>
-          <h2 id="about-heading" className="text-2xl font-medium mb-6">Korantis</h2>
-          <p className="text-base text-ink-muted leading-relaxed text-balance">
-            We are a systems company. We design how businesses run — from the architecture of operations to the intelligence that drives them.
-          </p>
-          <p className="mt-4 text-base text-ink-muted leading-relaxed text-balance">
-            Every company is a system. Most just don&apos;t know it yet. We help them see it, build it, and run it.
-          </p>
+          <SectionLabel>{t.about.label}</SectionLabel>
+          <h2 id="about-heading" className="text-2xl font-medium mb-6">{t.about.heading}</h2>
+          <p className="text-base text-ink-muted leading-relaxed text-balance">{t.about.body1}</p>
+          <p className="mt-4 text-base text-ink-muted leading-relaxed text-balance">{t.about.body2}</p>
         </div>
       </div>
     </section>
   );
 }
 
-// ─── Contact / CTA ────────────────────────────────────────────────────
+// ─── Contact ──────────────────────────────────────────────────────────
 
 function ContactSection() {
+  const { t } = useLang();
   const { formData, errors, submitting, status, onChange, onSubmit } = useContactForm();
 
   const fields = useMemo(() => [
-    { name: 'name' as const, label: 'Name', type: 'text', placeholder: 'Your name' },
-    { name: 'email' as const, label: 'Email', type: 'email', placeholder: 'you@company.com' },
-    { name: 'message' as const, label: 'Message', type: 'textarea', placeholder: 'Tell us about your system...' },
-  ], []);
+    { name: 'name'    as const, type: 'text',     ...t.contact.fields.name },
+    { name: 'email'   as const, type: 'email',    ...t.contact.fields.email },
+    { name: 'message' as const, type: 'textarea', ...t.contact.fields.message },
+  ], [t]);
 
   return (
     <section id="contact" className="section-padding border-t border-border" aria-labelledby="contact-heading">
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24">
           <div>
-            <SectionLabel>Start</SectionLabel>
-            <h2 id="contact-heading" className="text-2xl md:text-3xl font-medium mb-6 text-balance">
-              Build your system.
-            </h2>
-            <p className="text-base text-ink-muted leading-relaxed text-balance">
-              Tell us about your operations. We&apos;ll show you what&apos;s possible when your systems actually work.
-            </p>
+            <SectionLabel>{t.contact.label}</SectionLabel>
+            <h2 id="contact-heading" className="text-2xl md:text-3xl font-medium mb-6 text-balance">{t.contact.heading}</h2>
+            <p className="text-base text-ink-muted leading-relaxed text-balance">{t.contact.body}</p>
           </div>
 
           <form onSubmit={onSubmit} noValidate className="max-w-md">
             {fields.map((field) => (
               <div key={field.name} className="mb-6">
-                <label htmlFor={field.name} className="block text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle mb-3">
-                  {field.label}
-                </label>
+                <label htmlFor={field.name} className="block text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle mb-3">{field.label}</label>
                 {field.type === 'textarea' ? (
-                  <textarea
-                    id={field.name}
-                    name={field.name}
-                    value={formData[field.name]}
-                    onChange={onChange}
-                    placeholder={field.placeholder}
-                    rows={4}
-                    className={`korantis-input korantis-input--textarea ${errors[field.name] ? '!border-error' : ''}`}
-                    aria-invalid={errors[field.name] ? 'true' : undefined}
-                  />
+                  <textarea id={field.name} name={field.name} value={formData[field.name]} onChange={onChange} placeholder={field.placeholder} rows={4} className={`korantis-input korantis-input--textarea ${errors[field.name] ? '!border-error' : ''}`} aria-invalid={errors[field.name] ? 'true' : undefined} />
                 ) : (
-                  <input
-                    id={field.name}
-                    name={field.name}
-                    type={field.type}
-                    value={formData[field.name]}
-                    onChange={onChange}
-                    placeholder={field.placeholder}
-                    className={`korantis-input ${errors[field.name] ? '!border-error' : ''}`}
-                    aria-invalid={errors[field.name] ? 'true' : undefined}
-                  />
+                  <input id={field.name} name={field.name} type={field.type} value={formData[field.name]} onChange={onChange} placeholder={field.placeholder} className={`korantis-input ${errors[field.name] ? '!border-error' : ''}`} aria-invalid={errors[field.name] ? 'true' : undefined} />
                 )}
                 {errors[field.name] && (
-                  <p className="mt-1.5 text-xs text-error flex items-center gap-1.5" role="alert">
-                    <IconAlert />
-                    {errors[field.name]}
-                  </p>
+                  <p className="mt-1.5 text-xs text-error flex items-center gap-1.5" role="alert"><IconAlert />{errors[field.name]}</p>
                 )}
               </div>
             ))}
@@ -719,18 +571,18 @@ function ContactSection() {
             {status === 'success' && (
               <div className="flex items-center gap-2 p-3 mb-4 border border-success-border rounded-sm" style={{ background: 'rgba(52, 211, 153, 0.08)' }}>
                 <IconCheck />
-                <p className="text-success text-xs font-mono uppercase tracking-wider" role="status">Signal received.</p>
+                <p className="text-success text-xs font-mono uppercase tracking-wider" role="status">{t.contact.success}</p>
               </div>
             )}
             {status === 'error' && (
               <div className="flex items-center gap-2 p-3 mb-4 border border-error-border rounded-sm" style={{ background: 'rgba(248, 113, 113, 0.08)' }}>
                 <IconAlert />
-                <p className="text-error text-xs font-mono uppercase tracking-wider" role="alert">Transmission failed. Retry.</p>
+                <p className="text-error text-xs font-mono uppercase tracking-wider" role="alert">{t.contact.error}</p>
               </div>
             )}
 
             <button type="submit" disabled={submitting} className="korantis-btn korantis-btn--primary mt-2 w-full">
-              {submitting ? (<><Spinner /> Transmitting...</>) : (<>Transmit Request <IconArrow /></>)}
+              {submitting ? (<><Spinner /> {t.contact.submitting}</>) : (<>{t.contact.submit} <IconArrow /></>)}
             </button>
           </form>
         </div>
@@ -742,30 +594,28 @@ function ContactSection() {
 // ─── Footer ───────────────────────────────────────────────────────────
 
 function Footer() {
+  const { t } = useLang();
   return (
     <footer className="py-8 border-t border-border" role="contentinfo">
       <div className="container flex flex-col md:flex-row items-center justify-between gap-4">
         <p className="text-xs font-mono text-ink-subtle">&copy; {new Date().getFullYear()} Korantis</p>
         <p className="text-xs font-mono text-ink-subtle">
-          Powered by <span className="text-ink-muted">Wolfim&trade;</span>
+          {t.footer.poweredBy} <span className="text-ink-muted">Wolfim&trade;</span>
         </p>
       </div>
     </footer>
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────
+// ─── Page (inner — consumes context) ─────────────────────────────────
 
-export default function HomePage() {
+function HomePageInner() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [awake, setAwake] = useState(false);
   const activateRef = useRef(false);
 
   const handleActivate = useCallback(() => {
-    if (!activateRef.current) {
-      activateRef.current = true;
-      setAwake(true);
-    }
+    if (!activateRef.current) { activateRef.current = true; setAwake(true); }
   }, []);
 
   return (
@@ -782,6 +632,16 @@ export default function HomePage() {
       <ContactSection />
       <Footer />
     </main>
+  );
+}
+
+// ─── Page (exported — provides context) ──────────────────────────────
+
+export default function HomePage() {
+  return (
+    <LangProvider>
+      <HomePageInner />
+    </LangProvider>
   );
 }
 

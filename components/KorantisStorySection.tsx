@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useLang } from '@/lib/i18n';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -16,54 +17,20 @@ gsap.registerPlugin(ScrollTrigger);
  * from fighting the pin, giving clean touch-driven horizontal movement.
  */
 
-// ── Panel data ─────────────────────────────────────────────────────────
+// ── Visual config per panel (language-independent) ────────────────────
 
-const PANELS = [
-  {
-    bg: 'bg-black',
-    glow: 'radial-gradient(circle at 30% 50%, rgba(180,30,30,0.10) 0%, transparent 60%)',
-    num: '01',
-    numColor: 'text-red-400/40',
-    title: 'Chaos',
-    body: ['Too many tasks. No leverage.', 'Your team is busy — but nothing compounds.'],
-  },
-  {
-    bg: 'bg-neutral-950',
-    glow: 'radial-gradient(circle at 70% 40%, rgba(255,140,0,0.08) 0%, transparent 55%)',
-    num: '02',
-    numColor: 'text-orange-400/40',
-    title: 'Friction',
-    body: ['Time lost. Opportunities missed.', 'Every manual process is a tax on growth.'],
-  },
-  {
-    bg: 'bg-black',
-    glow: 'radial-gradient(circle at 50% 50%, rgba(0,200,255,0.06) 0%, transparent 50%)',
-    num: '03',
-    numColor: 'text-cyan-400/40',
-    title: 'Korantis Engine',
-    body: ['Automation replaces effort.', 'Systems execute while you strategize.'],
-  },
-  {
-    bg: 'bg-neutral-950',
-    glow: 'radial-gradient(circle at 40% 60%, rgba(0,255,136,0.06) 0%, transparent 50%)',
-    num: '04',
-    numColor: 'text-emerald-400/40',
-    title: 'Scale',
-    body: ['Systems grow while you focus.', 'Infrastructure that compounds, not degrades.'],
-  },
-  {
-    bg: 'bg-black',
-    glow: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.04) 0%, transparent 45%)',
-    num: '05',
-    numColor: 'text-neutral-300/40',
-    title: 'Dominance',
-    body: ['You operate. Systems execute.', 'This is what it looks like when everything works.'],
-  },
+const PANEL_STYLE = [
+  { num: '01', numColor: 'text-red-400/40',     glow: 'radial-gradient(circle at 30% 50%, rgba(180,30,30,0.10) 0%, transparent 60%)' },
+  { num: '02', numColor: 'text-orange-400/40',  glow: 'radial-gradient(circle at 70% 40%, rgba(255,140,0,0.08) 0%, transparent 55%)' },
+  { num: '03', numColor: 'text-cyan-400/40',    glow: 'radial-gradient(circle at 50% 50%, rgba(0,200,255,0.06) 0%, transparent 50%)' },
+  { num: '04', numColor: 'text-emerald-400/40', glow: 'radial-gradient(circle at 40% 60%, rgba(0,255,136,0.06) 0%, transparent 50%)' },
+  { num: '05', numColor: 'text-neutral-300/40', glow: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.04) 0%, transparent 45%)' },
 ] as const;
 
 // ── Component ──────────────────────────────────────────────────────────
 
 export default function KorantisStorySection() {
+  const { t } = useLang();
   const sectionRef = useRef<HTMLElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const progressRef = useRef<HTMLDivElement | null>(null);
@@ -210,38 +177,34 @@ export default function KorantisStorySection() {
 
       {/* ── PANELS ───────────────────────────────────────────────── */}
       <div ref={containerRef} className="relative z-10 flex w-max">
-        {PANELS.map((panel) => (
-          <div
-            key={panel.num}
-            className="story-panel relative flex h-[100svh] min-w-[100vw] items-center justify-center overflow-hidden"
-          >
-            {/* Per-panel dark vignette — keeps text readable over images */}
+        {PANEL_STYLE.map((style, i) => {
+          const text = t.story.panels[i];
+          return (
             <div
-              className="absolute inset-0"
-              style={{
-                background: 'radial-gradient(ellipse at center, transparent 20%, rgba(0,0,0,0.55) 100%)',
-              }}
-            />
-            <div
-              className="story-glow absolute inset-0"
-              style={{ background: panel.glow }}
-            />
+              key={style.num}
+              className="story-panel relative flex h-[100svh] min-w-[100vw] items-center justify-center overflow-hidden"
+            >
+              {/* Per-panel dark vignette — keeps text readable over images */}
+              <div
+                className="absolute inset-0"
+                style={{ background: 'radial-gradient(ellipse at center, transparent 20%, rgba(0,0,0,0.55) 100%)' }}
+              />
+              <div className="story-glow absolute inset-0" style={{ background: style.glow }} />
 
-            <div className="story-content relative z-10 mx-auto max-w-2xl px-6 text-center">
-              <span className={`font-mono text-xs sm:text-sm uppercase tracking-[0.3em] ${panel.numColor}`}>
-                {panel.num}
-              </span>
-              <h2 className="mt-5 text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-none">
-                {panel.title}
-              </h2>
-              <p className="mt-5 text-sm sm:text-lg md:text-xl text-neutral-400 leading-relaxed">
-                {panel.body[0]}
-                <br />
-                {panel.body[1]}
-              </p>
+              <div className="story-content relative z-10 mx-auto max-w-2xl px-6 text-center">
+                <span className={`font-mono text-xs sm:text-sm uppercase tracking-[0.3em] ${style.numColor}`}>
+                  {style.num}
+                </span>
+                <h2 className="mt-5 text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-none">
+                  {text.title}
+                </h2>
+                <p className="mt-5 text-sm sm:text-lg md:text-xl text-neutral-400 leading-relaxed">
+                  {text.body[0]}<br />{text.body[1]}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
