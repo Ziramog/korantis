@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import type { ContactFormData } from '@/lib/types';
+import KorantisStorySection from '@/components/KorantisStorySection';
 
 // ─── Brand ────────────────────────────────────────────────────────────
 
@@ -774,6 +775,7 @@ export default function HomePage() {
       <Header menuOpen={menuOpen} onToggle={useCallback(() => setMenuOpen((p) => !p), [])} />
       <HeroSection awake={awake} onActivate={handleActivate} />
       <ProblemSection />
+      <KorantisStorySection />
       <LayersSection />
       <OutcomeSection />
       <AboutSection />

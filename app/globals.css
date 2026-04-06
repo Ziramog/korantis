@@ -182,6 +182,18 @@ a {
   );
 }
 
+/* ── Horizontal Scroll Panel Safety ────────────────────────────────── */
+
+.panel {
+  min-width: 100vw;
+}
+
+@media (max-width: 768px) {
+  .horizontal-scroll-container {
+    flex-direction: column !important;
+  }
+}
+
 /* ── Reduced Motion ─────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
