@@ -166,27 +166,7 @@ a {
   border-width: 0;
 }
 
-/* ── Vignette (compatibility — handled by atmosphere.css) ── */
-
-.korantis-vignette {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 2;
-  background: radial-gradient(
-    ellipse at center,
-    transparent 30%,
-    rgba(0, 0, 0, 0.15) 50%,
-    rgba(0, 0, 0, 0.55) 80%,
-    rgba(0, 0, 0, 0.85) 100%
-  );
-}
-
 /* ── Horizontal Scroll Panel Safety ────────────────────────────────── */
-
-.panel {
-  min-width: 100vw;
-}
 
 @media (max-width: 768px) {
   .horizontal-scroll-container {

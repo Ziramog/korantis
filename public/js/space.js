@@ -55,15 +55,15 @@
     var size = 100;
     var centerX = w / 2;
     var centerY = h / 2;
-    var pulse = Math.sin(time) * 0.005;
+    var pulse = Math.sin(time) * 0.003;
 
     // Vertical lines
     for (var x = 0; x < w; x += size) {
       var dist = Math.abs(x + offsetX - centerX) / w;
       var isMajor = x % (size * 4) === 0;
-      var base = isMajor ? 0.06 : 0.025;
+      var base = isMajor ? 0.03 : 0.015;
       var lw = isMajor ? 0.8 : 0.4;
-      var opacity = base + (1 - dist) * (0.04 + pulse);
+      var opacity = base + (1 - dist) * (0.015 + pulse);
 
       ctx.strokeStyle = 'rgba(255,255,255,' + opacity + ')';
       ctx.lineWidth = lw;
@@ -78,9 +78,9 @@
     for (var y = 0; y < h; y += size) {
       var distY = Math.abs(y + offsetY - centerY) / h;
       var isMajorY = y % (size * 4) === 0;
-      var baseY = isMajorY ? 0.06 : 0.025;
+      var baseY = isMajorY ? 0.03 : 0.015;
       var lwY = isMajorY ? 0.8 : 0.4;
-      var opacityY = baseY + (1 - distY) * (0.04 + pulse);
+      var opacityY = baseY + (1 - distY) * (0.015 + pulse);
 
       ctx.strokeStyle = 'rgba(255,255,255,' + opacityY + ')';
       ctx.lineWidth = lwY;
