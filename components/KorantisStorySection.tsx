@@ -69,16 +69,25 @@ export default function KorantisStorySection() {
       });
 
       // ── PARALLAX DEPTH LAYERS ─────────────────────────────────
-      [
-        { ref: starsRef, x: 80  },   // far — flows lines, subtle drift
-        { ref: midRef,   x: 200 },   // mid — grid cubes, faster drift
-      ].forEach(({ ref, x }) => {
-        if (!ref.current) return;
-        gsap.to(ref.current, {
-          x, ease: 'none',
-          scrollTrigger: { trigger: section, containerAnimation: scrollTween, scrub: 1 },
+      // These live OUTSIDE the panels container, so they use section-level
+      // scroll triggers (NOT containerAnimation). Both move rightward at a
+      // fraction of the panels speed, creating a true depth parallax.
+      const pinDuration = { trigger: section, start: 'top top', end: () => `+=${scrollAmount}`, scrub: 1 };
+
+      if (starsRef.current) {
+        gsap.to(starsRef.current, {
+          x: scrollAmount * 0.12,   // back1 drifts at 12% of panel speed
+          ease: 'none',
+          scrollTrigger: pinDuration,
         });
-      });
+      }
+      if (midRef.current) {
+        gsap.to(midRef.current, {
+          x: scrollAmount * 0.25,   // back2 drifts at 25% of panel speed
+          ease: 'none',
+          scrollTrigger: pinDuration,
+        });
+      }
 
       // ── TEXT CINEMATIC REVEAL ─────────────────────────────────
       gsap.utils.toArray<HTMLElement>('.story-panel').forEach((panel) => {
@@ -146,33 +155,42 @@ export default function KorantisStorySection() {
       </div>
 
       {/* ── BACKGROUND IMAGES (parallax depth layers) ───────────── */}
+      {/*
+          Both divs start offset left by their extra width / 2 so the
+          visible centre is centred at load time, and GSAP drifts them
+          rightward as panels slide left — genuine depth parallax.
+          back1 extra: 30% → left: -15% | back2 extra: 50% → left: -25%
+      */}
       <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-        {/* Far layer — flowing lines (back1.webp), moves slowest */}
+        {/* Far layer — back1.webp (flowing lines), slowest drift */}
         <div
           ref={starsRef}
-          className="absolute inset-0"
+          className="absolute top-0 bottom-0"
           style={{
             backgroundImage: 'url(/back1.webp)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            width: '200%',
-            opacity: 0.55,
+            width: '130%',
+            left: '-15%',
+            opacity: 0.65,
           }}
         />
-        {/* Mid layer — grid cubes (back2.webp), moves faster */}
+        {/* Mid layer — back2.webp (grid cubes), faster drift + screen blend */}
         <div
           ref={midRef}
-          className="absolute inset-0"
+          className="absolute top-0 bottom-0"
           style={{
             backgroundImage: 'url(/back2.webp)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            width: '200%',
-            opacity: 0.12,
+            width: '150%',
+            left: '-25%',
+            opacity: 0.22,
+            mixBlendMode: 'screen',
           }}
         />
-        {/* Base dark tint so images don't overpower text */}
-        <div className="absolute inset-0 bg-black/55" />
+        {/* Dark tint — keeps text readable without burying the images */}
+        <div className="absolute inset-0 bg-black/40" />
       </div>
 
       {/* ── PANELS ───────────────────────────────────────────────── */}
