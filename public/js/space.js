@@ -69,29 +69,36 @@
   }
 
   /* ──────────────────────────────────────────────────────────────────
-     PARTICLE — small drifting dots with extreme depth contrast
+     PARTICLE — forward motion system (depth / z-axis simulation)
 
-     Layer 0 (far):  60% — barely visible, 0.2-0.3px, ghost opacity
-     Layer 1 (mid):  25% — almost invisible, 0.3-0.5px
-     Layer 2 (near): 15% — faintly visible, 0.5-0.8px
+     Layer 0 (far):  60% — barely visible, 0.15-0.3px, speed 0.02
+     Layer 1 (mid):  25% — almost invisible, 0.3-0.5px, speed 0.05
+     Layer 2 (near): 15% — faintly visible, 0.5-0.8px, speed 0.12
+                       10-15% of near stars get "streak" rendering
 
+     Motion: purely vertical (forward). No sideways drift.
      Space is mostly empty. What exists should feel meaningful.
      ────────────────────────────────────────────────────────────────── */
 
   var REPEL_RADIUS = 80;
   var REPEL_FORCE = 0.3;
 
+  // Speed burst system — periodic "ship accelerating" feeling
+  var speedMultiplier = 1;
+  var burstTimer = 0;
+  var nextBurst = 6000 + Math.random() * 4000; // 6-10s
+
   function Particle(canvasW, canvasH) {
     var r = Math.random();
     this.depth = r < 0.6 ? 0 : r < 0.85 ? 1 : 2;
 
     var depthConfig = [
-      // Far: barely there, almost lost in void
-      { sizeMin: 0.15, sizeMax: 0.3,  speedMul: 0.1,  opacityMin: 0.02, opacityMax: 0.05, parallaxMul: 0.01  },
-      // Mid: almost invisible
-      { sizeMin: 0.3,  sizeMax: 0.5,  speedMul: 0.25, opacityMin: 0.04, opacityMax: 0.1,  parallaxMul: 0.025 },
-      // Near: faintly visible, closest thing to "present"
-      { sizeMin: 0.5,  sizeMax: 0.8,  speedMul: 0.45, opacityMin: 0.08, opacityMax: 0.18, parallaxMul: 0.05  },
+      // Far: barely there, moving slowly
+      { sizeMin: 0.15, sizeMax: 0.3,  speed: 0.02, opacityMin: 0.02, opacityMax: 0.05, parallaxMul: 0.01  },
+      // Mid: almost invisible, moderate speed
+      { sizeMin: 0.3,  sizeMax: 0.5,  speed: 0.05, opacityMin: 0.04, opacityMax: 0.1,  parallaxMul: 0.025 },
+      // Near: faintly visible, fastest
+      { sizeMin: 0.5,  sizeMax: 0.8,  speed: 0.12, opacityMin: 0.08, opacityMax: 0.18, parallaxMul: 0.05  },
     ];
 
     var cfg = depthConfig[this.depth];
@@ -99,13 +106,17 @@
     this.x = Math.random() * canvasW;
     this.y = Math.random() * canvasH;
     this.size = cfg.sizeMin + Math.random() * (cfg.sizeMax - cfg.sizeMin);
+    this.speed = cfg.speed;
 
-    // Extremely slow drift
-    this.vx = (Math.random() - 0.5) * 0.04 * cfg.speedMul;
-    this.vy = (Math.random() - 0.5) * 0.03 * cfg.speedMul;
+    // 1 in 8 particles is an "anchor" — slightly more visible reference point
+    this.isAnchor = Math.random() < 0.125;
+    if (this.isAnchor) {
+      this.size *= 1.3;
+    }
 
     this.baseOpacity = cfg.opacityMin + Math.random() * (cfg.opacityMax - cfg.opacityMin);
     this.opacity = this.baseOpacity;
+    if (this.isAnchor) this.baseOpacity *= 2.0;
     this.pulseSpeed = 0.0006 + Math.random() * 0.001;
     this.pulsePhase = Math.random() * Math.PI * 2;
 
@@ -118,20 +129,17 @@
     this.r = 255;
     this.g = 255;
     this.b = 255;
-
-    // 1 in 8 particles is an "anchor" — slightly more visible reference point
-    this.isAnchor = Math.random() < 0.125;
-    if (this.isAnchor) {
-      this.baseOpacity *= 2.0;
-      this.opacity = this.baseOpacity;
-      this.size *= 1.3;
-    }
   }
 
   Particle.prototype.update = function (dt, time) {
-    // Natural drift
-    this.x += this.vx * dt;
-    this.y += this.vy * dt;
+    // Forward motion only — no sideways drift
+    var effectiveSpeed = this.speed * speedMultiplier;
+    this.y += effectiveSpeed * dt;
+
+    // Very slight horizontal jitter for near layer (not drift, just life)
+    if (this.depth === 2) {
+      this.x += Math.sin(time * 0.001 + this.pulsePhase) * 0.002;
+    }
 
     // Opacity pulse
     this.opacity = this.baseOpacity + Math.sin(time * this.pulseSpeed + this.pulsePhase) * 0.015;
@@ -154,29 +162,38 @@
       var dist = Math.sqrt(dx * dx + dy * dy);
       if (dist < REPEL_RADIUS && dist > 0) {
         var force = (1 - dist / REPEL_RADIUS) * REPEL_FORCE;
-        this.vx += (dx / dist) * force * 0.01;
-        this.vy += (dy / dist) * force * 0.01;
-        // Dampen back to natural speed
-        var maxDrift = 0.06;
-        var spd = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-        if (spd > maxDrift) {
-          this.vx = (this.vx / spd) * maxDrift;
-          this.vy = (this.vy / spd) * maxDrift;
-        }
+        this.x += (dx / dist) * force * 0.5;
+        this.y += (dy / dist) * force * 0.3;
       }
     }
 
-    // Wrap around edges
-    var margin = 10;
-    if (this.x < -margin) this.x = canvas.width + margin;
-    if (this.x > canvas.width + margin) this.x = -margin;
-    if (this.y < -margin) this.y = canvas.height + margin;
-    if (this.y > canvas.height + margin) this.y = -margin;
+    // Respawn at top when off bottom
+    var h = canvas.height;
+    var w = canvas.width;
+    if (this.y > h + 5) {
+      this.y = -5;
+      this.x = Math.random() * w;
+    }
   };
 
   Particle.prototype.draw = function (ctx) {
     var drawX = this.x + this.px;
     var drawY = this.y + this.py;
+
+    // Hyperspace streaks — ONLY for near stars, 10% chance when moving
+    if (this.depth === 2 && speedMultiplier > 1.3 && Math.random() < 0.15) {
+      var streakLen = 6 + (speedMultiplier - 1) * 4;
+      ctx.beginPath();
+      ctx.moveTo(drawX, drawY);
+      ctx.lineTo(drawX, drawY - streakLen);
+      ctx.strokeStyle = 'rgba(200, 215, 255, ' + (this.opacity * 0.6) + ')';
+      ctx.lineWidth = 1;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+      return;
+    }
+
+    // Normal dot rendering (90% of the time)
     ctx.beginPath();
     ctx.arc(drawX, drawY, this.size, 0, Math.PI * 2);
     ctx.fillStyle =
@@ -400,6 +417,21 @@
       lastTime = now;
 
       updateMouseLerp();
+
+      // Speed burst system — periodic "acceleration" feeling
+      burstTimer += dt;
+      if (speedMultiplier > 1) {
+        // We're in a burst — end it after 0.5s
+        if (burstTimer > 500) {
+          speedMultiplier = 1;
+          burstTimer = 0;
+          nextBurst = 6000 + Math.random() * 4000; // 6-10s until next
+        }
+      } else if (burstTimer > nextBurst) {
+        // Time to start a burst
+        speedMultiplier = 2.5;
+        burstTimer = 0;
+      }
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
