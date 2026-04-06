@@ -2,12 +2,12 @@
  * ═══════════════════════════════════════════════════════════════════════
  * KORANTIS — Atmosphere Stylesheet
  * ═══════════════════════════════════════════════════════════════════════
- * Grid. Particles (canvas). Vignette. Logo.
+ * Grid. Stars (canvas). Comets. Vignette. Logo.
  * No intro. No glows. No decorative overlays.
  *
  * Depth z-index map:
  *   0    — grid background
- *   1    — particles canvas (includes comets)
+ *   1    — stars canvas (includes comets)
  *   2    — vignette (edge darkening)
  *   10+  — content (main)
  * ═══════════════════════════════════════════════════════════════════════
