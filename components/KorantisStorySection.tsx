@@ -51,12 +51,12 @@ export default function KorantisStorySection() {
 
       gsap.to(track, {
         x: -scrollAmount,
-        ease: 'power3.out',
+        ease: 'power2.out',
         scrollTrigger: {
           trigger: section,
-          start: 'top top',
-          end: '+=220%',
-          scrub: 1.2,
+          start: 'top center',
+          end: '+=180%',
+          scrub: 1.4,
           pin: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
@@ -89,39 +89,32 @@ export default function KorantisStorySection() {
   }, []);
 
   return (
-    <>
-      <div className="section-break" aria-hidden="true" />
+    <section
+      ref={sectionRef}
+      className="h-scroll"
+      aria-label="Korantis story"
+    >
+      <div ref={trackRef} className="h-track">
+        {PANELS.map((panel, i) => {
+          const text = t.story.panels[i];
+          return (
+            <div key={panel.code} className="story-panel">
+              <img src={panel.img} alt="" aria-hidden="true" />
 
-      <section
-        ref={sectionRef}
-        className="h-scroll"
-        aria-label="Korantis story"
-      >
-        <div ref={trackRef} className="h-track">
-          {PANELS.map((panel, i) => {
-            const text = t.story.panels[i];
-            return (
-              <div key={panel.code} className="story-panel">
-                <img src={panel.img} alt="" aria-hidden="true" />
-                <div className="panel-vignette" />
+              <div className="panel-id" aria-hidden="true">{panel.code}</div>
 
-                <div className="panel-id" aria-hidden="true">{panel.code}</div>
-
-                <div className="panel-overlay">
-                  <h3 className="panel-tag">
-                    {text.body[0]}<br />
-                    {text.body[1]}
-                  </h3>
-                  <h2>{text.title}</h2>
-                  <p>{text.body[0]}</p>
+              <div className="panel-overlay">
+                <div className="panel-meta">
+                  {text.body[0]}<br />
+                  {text.body[1]}
                 </div>
+                <h2>{text.title}</h2>
+                <p>{text.body[1]}</p>
               </div>
-            );
-          })}
-        </div>
-      </section>
-
-      <div className="section-break" aria-hidden="true" />
-    </>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
