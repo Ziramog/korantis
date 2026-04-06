@@ -34,178 +34,213 @@ function BackgroundLayers({ awake }: { awake: boolean }) {
     canvas.width = w;
     canvas.height = h;
 
-    const resize = () => {
-      w = window.innerWidth;
-      h = window.innerHeight;
-      canvas.width = w;
-      canvas.height = h;
-    };
-    window.addEventListener('resize', resize);
-
-    let targetX = 0;
-    let targetY = 0;
-    let fieldX = 0;
-    let fieldY = 0;
-
-    window.addEventListener('mousemove', (e) => {
-      targetX = (e.clientX / w - 0.5) * 4;
-      targetY = (e.clientY / h - 0.5) * 4;
-    });
-
-    const centerX = w / 2;
-    const centerY = h / 2;
-
+    // ── Types ──────────────────────────────────────────────────
     type Star = {
-      x: number; y: number; vx: number; vy: number;
-      depth: number; size: number; baseAlpha: number;
+      x: number; y: number;
+      size: number; baseAlpha: number; depth: number;
+      twinklePhase: number; twinkleSpeed: number;
     };
-
-    const stars: Star[] = [];
-    for (let i = 0; i < 120; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 0.2 + Math.random() * 0.8;
-      const depth = Math.random();
-      const initDist = 30 + Math.random() * Math.max(w, h) * 0.5;
-      stars.push({
-        x: centerX + Math.cos(angle) * initDist,
-        y: centerY + Math.sin(angle) * initDist,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        depth,
-        size: 0.3 + depth * 0.8,
-        baseAlpha: 0.2 + depth * 0.5,
-      });
-    }
-
+    type BrightStar = {
+      x: number; y: number;
+      size: number; alpha: number;
+      phase: number; speed: number;
+    };
     type Comet = {
       active: boolean; x: number; y: number; vx: number; vy: number;
-      life: number; maxLife: number; trail: { x: number; y: number; alpha: number }[];
+      life: number; maxLife: number;
+      trail: { x: number; y: number; alpha: number }[];
     };
 
+    // ── Star field — fixed positions, depth-sorted ─────────────
+    const mkStar = (): Star => {
+      const depth = Math.random();
+      return {
+        x: Math.random() * w, y: Math.random() * h,
+        size: 0.15 + depth * 0.9,
+        baseAlpha: 0.1 + depth * 0.5,
+        depth,
+        twinklePhase: Math.random() * Math.PI * 2,
+        twinkleSpeed: 0.001 + Math.random() * 0.005,
+      };
+    };
+    const stars: Star[] = Array.from({ length: 260 }, mkStar);
+
+    // ── Bright stars with glow halos ───────────────────────────
+    const brightStars: BrightStar[] = Array.from({ length: 18 }, () => ({
+      x: Math.random() * w, y: Math.random() * h,
+      size: 1.2 + Math.random() * 2.0,
+      alpha: 0.45 + Math.random() * 0.55,
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.0008 + Math.random() * 0.003,
+    }));
+
+    // ── Rare slow comets ───────────────────────────────────────
     const comets: Comet[] = [];
-    let nextCometAt = 6000 + Math.random() * 8000;
     let cometTimer = 0;
+    let nextCometAt = 12000 + Math.random() * 18000;
 
     const spawnComet = (): Comet => {
       const fromLeft = Math.random() > 0.5;
-      const angle = (Math.random() - 0.5) * 0.6;
-      const speed = 1.5 + Math.random() * 2;
+      const drift = (Math.random() - 0.5) * 0.35;
+      const speed = 0.9 + Math.random() * 1.2;
       return {
         active: true,
-        x: fromLeft ? -20 : w + 20,
-        y: Math.random() * h * 0.6,
+        x: fromLeft ? -30 : w + 30,
+        y: Math.random() * h * 0.65,
         vx: fromLeft ? speed : -speed,
-        vy: Math.sin(angle) * speed * 0.4,
-        life: 0,
-        maxLife: 80 + Math.random() * 60,
+        vy: Math.sin(drift) * speed * 0.25,
+        life: 0, maxLife: 120 + Math.random() * 100,
         trail: [],
       };
     };
 
+    // ── Mouse parallax ─────────────────────────────────────────
+    let targetX = 0, targetY = 0, lerpX = 0, lerpY = 0;
+    const onMove = (e: MouseEvent) => {
+      targetX = (e.clientX / w - 0.5) * 22;
+      targetY = (e.clientY / h - 0.5) * 22;
+    };
+    window.addEventListener('mousemove', onMove);
+
+    const onResize = () => {
+      w = window.innerWidth; h = window.innerHeight;
+      canvas.width = w; canvas.height = h;
+      for (const s of stars) { s.x = Math.random() * w; s.y = Math.random() * h; }
+      for (const s of brightStars) { s.x = Math.random() * w; s.y = Math.random() * h; }
+    };
+    window.addEventListener('resize', onResize);
+
     let raf = 0;
     let lastTime = performance.now();
-    let speedMultiplier = 1;
-    let nextBurstAt = 6000 + Math.random() * 4000;
-    let burstTimer = 0;
-    let burstActive = false;
 
     const loop = (now: number) => {
       const dt = Math.min(now - lastTime, 50);
       lastTime = now;
+
       ctx.clearRect(0, 0, w, h);
 
-      fieldX += (targetX - fieldX) * 0.05;
-      fieldY += (targetY - fieldY) * 0.05;
+      lerpX += (targetX - lerpX) * 0.035;
+      lerpY += (targetY - lerpY) * 0.035;
 
-      burstTimer += dt;
-      if (!burstActive && burstTimer > nextBurstAt) {
-        burstActive = true;
-        speedMultiplier = 2.5;
-        burstTimer = 0;
-      }
-      if (burstActive && burstTimer > 500) {
-        burstActive = false;
-        speedMultiplier = 1;
-        burstTimer = 0;
-        nextBurstAt = 6000 + Math.random() * 4000;
-      }
+      const boost = awake ? 1.4 : 0.85;
 
-      const awakeBoost = awake ? 1.2 : 1;
-
+      // ── Regular stars ────────────────────────────────────────
       for (const s of stars) {
-        const dx = s.x - centerX;
-        const dy = s.y - centerY;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-
-        s.x += s.vx * (1 + s.depth * 2) * speedMultiplier * awakeBoost;
-        s.y += s.vy * (1 + s.depth * 2) * speedMultiplier * awakeBoost;
-        s.size = 0.5 + s.depth * 2 + distance * 0.002;
-
-        if (s.x < -20 || s.x > w + 20 || s.y < -20 || s.y > h + 20) {
-          s.x = centerX;
-          s.y = centerY;
-          const a = Math.random() * Math.PI * 2;
-          const sp = 0.2 + Math.random() * 0.8;
-          s.vx = Math.cos(a) * sp;
-          s.vy = Math.sin(a) * sp;
-        }
-
-        const alpha = s.baseAlpha * (awake ? 1.4 : 1);
+        s.twinklePhase += s.twinkleSpeed;
+        const twinkle = Math.sin(s.twinklePhase) * 0.28;
+        const alpha = Math.max(0, (s.baseAlpha + twinkle) * boost);
+        const px = s.x + lerpX * s.depth * 0.7;
+        const py = s.y + lerpY * s.depth * 0.7;
         ctx.beginPath();
-        ctx.arc(s.x + fieldX, s.y + fieldY, s.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(200, 215, 255, ${alpha})`;
+        ctx.arc(px, py, s.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(210, 228, 255, ${alpha})`;
         ctx.fill();
       }
 
+      // ── Bright stars with radial glow ────────────────────────
+      for (const s of brightStars) {
+        s.phase += s.speed;
+        const tw = Math.sin(s.phase) * 0.32;
+        const alpha = Math.max(0.15, (s.alpha + tw) * boost);
+        const px = s.x + lerpX * 0.25;
+        const py = s.y + lerpY * 0.25;
+
+        // soft halo
+        const g = ctx.createRadialGradient(px, py, 0, px, py, s.size * 6);
+        g.addColorStop(0,   `rgba(170, 205, 255, ${alpha * 0.45})`);
+        g.addColorStop(0.5, `rgba(130, 170, 255, ${alpha * 0.12})`);
+        g.addColorStop(1,   'transparent');
+        ctx.beginPath();
+        ctx.arc(px, py, s.size * 6, 0, Math.PI * 2);
+        ctx.fillStyle = g;
+        ctx.fill();
+
+        // core
+        ctx.beginPath();
+        ctx.arc(px, py, s.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(245, 250, 255, ${Math.min(1, alpha)})`;
+        ctx.fill();
+      }
+
+      // ── Comets ───────────────────────────────────────────────
       cometTimer += dt;
-      if (cometTimer > nextCometAt && comets.filter(c => c.active).length < 1) {
+      if (cometTimer > nextCometAt && comets.filter(c => c.active).length === 0) {
         comets.push(spawnComet());
         cometTimer = 0;
-        nextCometAt = 4000 + Math.random() * 8000;
+        nextCometAt = 12000 + Math.random() * 18000;
       }
 
       for (let i = comets.length - 1; i >= 0; i--) {
         const c = comets[i];
         if (!c.active) { comets.splice(i, 1); continue; }
         c.life++;
-        c.x += c.vx;
-        c.y += c.vy;
-        const progress = c.life / c.maxLife;
-        const fadeIn = Math.min(c.life / 10, 1);
-        const fadeOut = 1 - Math.pow(progress, 2);
-        const alpha = fadeIn * fadeOut;
+        c.x += c.vx; c.y += c.vy;
+
+        const fadeIn  = Math.min(c.life / 18, 1);
+        const fadeOut = 1 - Math.pow(c.life / c.maxLife, 1.6);
+        const alpha   = fadeIn * fadeOut * (awake ? 1 : 0.65);
+
         c.trail.unshift({ x: c.x, y: c.y, alpha });
-        if (c.trail.length > 25) c.trail.pop();
+        if (c.trail.length > 48) c.trail.pop();
+
         for (let t = 1; t < c.trail.length; t++) {
           const p = c.trail[t];
-          const tailAlpha = p.alpha * (1 - t / c.trail.length) * 0.4;
+          const ta = p.alpha * (1 - t / c.trail.length) * 0.32;
           ctx.beginPath();
-          ctx.arc(p.x, p.y, 1.5 * (1 - t / c.trail.length), 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(180, 210, 255, ${tailAlpha})`;
+          ctx.arc(p.x, p.y, 1.6 * (1 - t / c.trail.length), 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(175, 215, 255, ${ta})`;
           ctx.fill();
         }
+
+        // head glow
+        const hg = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, 7);
+        hg.addColorStop(0, `rgba(245, 250, 255, ${alpha})`);
+        hg.addColorStop(1, 'transparent');
         ctx.beginPath();
-        ctx.arc(c.x, c.y, 2, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(220, 235, 255, ${alpha * 0.9})`;
+        ctx.arc(c.x, c.y, 7, 0, Math.PI * 2);
+        ctx.fillStyle = hg;
         ctx.fill();
-        if (c.life > c.maxLife || c.x < -100 || c.x > w + 100 || c.y < -100 || c.y > h + 100) {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        ctx.fill();
+
+        if (c.life > c.maxLife || c.x < -200 || c.x > w + 200 || c.y < -200 || c.y > h + 200)
           c.active = false;
-        }
       }
 
       raf = requestAnimationFrame(loop);
     };
-    raf = requestAnimationFrame(loop);
 
+    raf = requestAnimationFrame(loop);
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener('resize', resize);
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('mousemove', onMove);
     };
   }, [awake]);
 
   return (
     <>
-      <canvas ref={canvasRef} aria-hidden="true" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 1, pointerEvents: 'none' }} />
+      {/* Deep space nebula — colour layers behind the canvas */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
+          background: [
+            'radial-gradient(ellipse at 18% 42%, rgba(22, 10, 70, 0.75) 0%, transparent 55%)',
+            'radial-gradient(ellipse at 80% 15%, rgba(8, 20, 88, 0.65) 0%, transparent 50%)',
+            'radial-gradient(ellipse at 55% 80%, rgba(45, 8, 58, 0.55) 0%, transparent 45%)',
+            'radial-gradient(ellipse at 38% 8%,  rgba(4,  12, 48, 0.45) 0%, transparent 40%)',
+            'radial-gradient(ellipse at 92% 65%, rgba(14, 5,  42, 0.40) 0%, transparent 38%)',
+          ].join(','),
+        }}
+      />
+      <canvas
+        ref={canvasRef}
+        aria-hidden="true"
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 1, pointerEvents: 'none' }}
+      />
       <div className="korantis-atmosphere-grid" aria-hidden="true" />
       <div className="korantis-vignette" aria-hidden="true" />
     </>
