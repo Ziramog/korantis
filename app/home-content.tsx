@@ -451,6 +451,7 @@ function ContactSection() {
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24">
           <div>
+            <img src="/korantisicon.svg" alt="" className="h-6 w-auto mb-4 opacity-70" aria-hidden="true" />
             <h2 id="contact-heading" className="text-2xl md:text-3xl font-medium mb-6 text-balance">{t.contact.heading}</h2>
             <p className="text-base text-ink-muted leading-relaxed text-balance">{t.contact.body}</p>
           </div>
