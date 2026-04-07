@@ -36,7 +36,11 @@ export default function SystemStory() {
       const x = maxTranslate * smoothProgress;
 
       track.style.transform = `translateX(-${x}px)`;
-      bg.style.transform = `translateX(-${x * 0.25}px)`;
+
+      // parallax background — subtle shift with slight scale for coverage
+      const bgScale = 1.08;
+      const bgX = x * 0.3;
+      bg.style.transform = `scale(${bgScale}) translateX(-${bgX}px)`;
 
       const panels = track.children;
       const count = panels.length;
