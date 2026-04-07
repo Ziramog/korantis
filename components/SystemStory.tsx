@@ -21,7 +21,16 @@ export default function SystemStory() {
 
     let raf: number;
     let smoothProgress = 0;
-    const lerp = 0.075;
+    const lerp = 0.07;
+
+    // Layout constants
+    const panelWidth = window.innerWidth * 0.66; // 66vw — 1/3 narrower
+    const trackWidth = PANELS.length * panelWidth;
+    const maxScroll = trackWidth - window.innerWidth;
+    const initialOffset = (window.innerWidth - panelWidth) / 2; // center first panel
+
+    // Precompute panel centers in track space
+    const panelCenters = PANELS.map((_, i) => (i + 0.5) * panelWidth);
 
     const tick = () => {
       const rect = section.getBoundingClientRect();
@@ -30,22 +39,33 @@ export default function SystemStory() {
 
       smoothProgress += (raw - smoothProgress) * lerp;
 
-      const maxTranslate = track.scrollWidth - window.innerWidth;
-      const x = maxTranslate * smoothProgress;
+      // Move track
+      const x = maxScroll * smoothProgress;
+      track.style.transform = `translateX(${-initialOffset - x}px)`;
 
-      track.style.transform = `translateX(-${x}px)`;
+      // Viewport center in track coordinates
+      const vpCenter = initialOffset + panelWidth / 2 + x;
 
+      // Spotlight: each panel's brightness based on distance to viewport center
       const panels = track.children;
       const count = panels.length;
 
       for (let i = 0; i < count; i++) {
         const panel = panels[i] as HTMLElement;
-        const p = smoothProgress * count - i;
-        const opacity = Math.max(0, Math.min(1, 1 - Math.abs(p) * 1.2));
-        const y = (1 - opacity) * 30;
+        const dist = Math.abs(panelCenters[i] - vpCenter) / panelWidth;
+
+        // Gaussian falloff: 1.0 at center, ~0.1 at dist=0.5
+        const brightness = Math.exp(-dist * dist * 12);
+        const opacity = Math.max(0.08, brightness);
+
+        // Depth: panels off-center get subtle scale-down + blur
+        const scale = 0.92 + 0.08 * brightness;
+        const blur = (1 - brightness) * 3;
+        const y = (1 - brightness) * 20;
 
         panel.style.opacity = String(opacity);
-        panel.style.transform = `translateY(${y}px)`;
+        panel.style.filter = `blur(${blur}px)`;
+        panel.style.transform = `scale(${scale}) translateY(${y}px)`;
       }
 
       raf = requestAnimationFrame(tick);
@@ -71,9 +91,11 @@ export default function SystemStory() {
 function Panel({ index, title, text }: { index: string; title: string; text: string }) {
   return (
     <div className="panel">
-      <span className="panel-index">{index}</span>
-      <h2>{title}</h2>
-      <p>{text}</p>
+      <div className="panel-inner">
+        <span className="panel-index">{index}</span>
+        <h2>{title}</h2>
+        <p>{text}</p>
+      </div>
     </div>
   );
 }
