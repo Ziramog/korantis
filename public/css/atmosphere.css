@@ -17,7 +17,7 @@
   pointer-events: none;
   -webkit-mask-image: radial-gradient(circle at center, white 35%, transparent 80%);
   mask-image: radial-gradient(circle at center, white 35%, transparent 80%);
-  opacity: 0.25;
+  opacity: 0.18;
   transition: opacity 0.6s ease;
 }
 
@@ -30,24 +30,30 @@
    ────────────────────────────────────────────────────────────────────── */
 
 .section-label {
-  position: relative;
   margin-left: 8%;
-  margin-bottom: 20px;
-  display: flex;
-  gap: 12px;
-  align-items: center;
+  margin-bottom: 40px;
+}
+
+.section-label::before {
+  content: "";
+  display: block;
+  width: 40px;
+  height: 1px;
+  background: rgba(255,255,255,0.2);
+  margin-bottom: 10px;
 }
 
 .section-label span {
-  font-size: 12px;
-  color: rgba(255,255,255,0.25);
+  font-size: 11px;
+  opacity: 0.3;
   font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
+  display: block;
 }
 
 .section-label p {
-  font-size: 12px;
-  letter-spacing: 2px;
-  color: rgba(255,255,255,0.4);
+  font-size: 13px;
+  letter-spacing: 3px;
+  opacity: 0.5;
   text-transform: uppercase;
   margin: 0;
   font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
@@ -67,34 +73,32 @@
 
 .h-scroll {
   position: relative;
-  height: 65vh;
+  height: 60vh;
+  margin-top: 80px;
+  margin-bottom: 80px;
   overflow: hidden;
-  border-top: 1px solid rgba(255,255,255,0.05);
-  border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
-/* Fade edges */
-.h-scroll::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at center, transparent 40%, black 95%);
-  pointer-events: none;
-  z-index: 4;
-}
-
-/* Grid overlay (local, not fighting global) */
+/* Top/bottom blend fades — integrates strip into page flow */
+.h-scroll::before,
 .h-scroll::after {
   content: "";
   position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-  background-size: 80px 80px;
+  left: 0;
+  right: 0;
+  height: 120px;
   pointer-events: none;
-  opacity: 0.3;
-  z-index: 2;
+  z-index: 5;
+}
+
+.h-scroll::before {
+  top: 0;
+  background: linear-gradient(to bottom, black, transparent);
+}
+
+.h-scroll::after {
+  bottom: 0;
+  background: linear-gradient(to top, black, transparent);
 }
 
 .h-track {
@@ -146,11 +150,12 @@
   max-width: 420px;
   text-align: left;
   z-index: 3;
-  transition: transform 0.6s ease;
+  animation: floatSubtle 6s ease-in-out infinite;
 }
 
-.story-panel:hover .panel-overlay {
-  transform: translateY(-6px);
+@keyframes floatSubtle {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-4px); }
 }
 
 .panel-meta {
@@ -182,8 +187,10 @@
 
 .k-anchor-wrap {
   position: absolute;
-  right: 6%;
-  top: 10%;
+  right: 10%;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.08;
   z-index: 3;
   pointer-events: none;
 }
@@ -197,13 +204,26 @@
 }
 
 .k-anchor {
-  width: 80px;
-  opacity: 0.15;
+  width: 120px;
   display: block;
 }
 
 /* ──────────────────────────────────────────────────────────────────────
-   3. CONTENT Z-INDEX
+   5. SECTION TYPOGRAPHY — lower sections get weight
+   ────────────────────────────────────────────────────────────────────── */
+
+section p {
+  max-width: 480px;
+  line-height: 1.6;
+  opacity: 0.75;
+}
+
+section h2 {
+  margin-bottom: 12px;
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   6. CONTENT Z-INDEX
    ────────────────────────────────────────────────────────────────────── */
 
 .korantis-main-content {
@@ -218,6 +238,9 @@
 @media (prefers-reduced-motion: reduce) {
   #grid-bg {
     display: none;
+  }
+  .panel-overlay {
+    animation: none;
   }
 }
 
