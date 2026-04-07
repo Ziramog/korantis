@@ -89,32 +89,25 @@ export default function KorantisStorySection() {
   }, []);
 
   return (
-    <>
-      <div className="section-label" aria-hidden="true">
-        <span>01</span>
-        <p>System Visualization</p>
-      </div>
-
-      <section
-        ref={sectionRef}
-        className="h-scroll"
-        aria-label="Korantis story"
-      >
-        <div ref={trackRef} className="h-track">
-          {PANELS.map((panel) => (
-            <div key={panel.code} className="story-panel">
-              <div className="panel-content">
-                <span>{panel.label}</span>
-                <h2>{panel.heading}</h2>
-                <p>
-                  {panel.body}
-                  {panel.sub && <><br /><br />{panel.sub}</>}
-                </p>
-              </div>
+    <section
+      ref={sectionRef}
+      className="h-scroll"
+      aria-label="Korantis story"
+    >
+      <div ref={trackRef} className="h-track">
+        {PANELS.map((panel) => (
+          <div key={panel.code} className="story-panel">
+            <div className="panel-content">
+              <span>{panel.code} — {panel.label}</span>
+              <h2>{panel.heading}</h2>
+              <p>
+                {panel.body}
+                {panel.sub && <><br /><br />{panel.sub}</>}
+              </p>
             </div>
-          ))}
-        </div>
-      </section>
-    </>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }

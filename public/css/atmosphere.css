@@ -24,41 +24,7 @@
 }
 
 /* ──────────────────────────────────────────────────────────────────────
-   2. SECTION LABEL — system hierarchy numbers
-   ────────────────────────────────────────────────────────────────────── */
-
-.section-label {
-  margin-left: 8%;
-  margin-bottom: 40px;
-}
-
-.section-label::before {
-  content: "";
-  display: block;
-  width: 40px;
-  height: 1px;
-  background: rgba(255,255,255,0.2);
-  margin-bottom: 10px;
-}
-
-.section-label span {
-  font-size: 11px;
-  opacity: 0.3;
-  font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
-  display: block;
-}
-
-.section-label p {
-  font-size: 13px;
-  letter-spacing: 3px;
-  opacity: 0.5;
-  text-transform: uppercase;
-  margin: 0;
-  font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
-}
-
-/* ──────────────────────────────────────────────────────────────────────
-   3. SECTION DEPTH
+   2. SECTION DEPTH
    ────────────────────────────────────────────────────────────────────── */
 
 .section-dark {
@@ -66,7 +32,7 @@
 }
 
 /* ──────────────────────────────────────────────────────────────────────
-   4. HORIZONTAL SCROLL — text-driven system narrative
+   3. HORIZONTAL SCROLL — text-driven system narrative
    ────────────────────────────────────────────────────────────────────── */
 
 .h-scroll {
@@ -142,12 +108,13 @@
 }
 
 .panel-content span {
-  font-size: 12px;
-  letter-spacing: 0.2em;
+  font-size: 13px;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  opacity: 0.5;
+  opacity: 0.4;
   font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
   display: block;
+  margin-bottom: 8px;
 }
 
 .panel-content h2 {
@@ -169,7 +136,7 @@
 }
 
 /* ──────────────────────────────────────────────────────────────────────
-   5. SECTION TYPOGRAPHY
+   4. SECTION TYPOGRAPHY
    ────────────────────────────────────────────────────────────────────── */
 
 section p {
@@ -183,7 +150,7 @@ section h2 {
 }
 
 /* ──────────────────────────────────────────────────────────────────────
-   6. CONTENT Z-INDEX
+   5. CONTENT Z-INDEX
    ────────────────────────────────────────────────────────────────────── */
 
 .korantis-main-content {
@@ -192,7 +159,7 @@ section h2 {
 }
 
 /* ──────────────────────────────────────────────────────────────────────
-   7. LOGO
+   6. LOGO
    ────────────────────────────────────────────────────────────────────── */
 
 .korantis-nav-logo {
@@ -211,7 +178,7 @@ section h2 {
 }
 
 /* ──────────────────────────────────────────────────────────────────────
-   8. REDUCED MOTION
+   7. REDUCED MOTION
    ────────────────────────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {

@@ -258,24 +258,6 @@ function Spinner() {
 
 // ─── Shared ───────────────────────────────────────────────────────────
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-3 mb-4">
-      <div className="w-8 h-px bg-border" />
-      <p className="text-xs font-mono uppercase tracking-[0.2em] text-ink-subtle">{children}</p>
-    </div>
-  );
-}
-
-function SystemLabel({ number, title }: { number: string; title: string }) {
-  return (
-    <div className="section-label" aria-hidden="true">
-      <span>{number}</span>
-      <p>{title}</p>
-    </div>
-  );
-}
-
 function KLogoIcon({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" className={className} aria-hidden="true">
@@ -348,10 +330,6 @@ function HeroSection({ awake, onActivate }: { awake: boolean; onActivate: () => 
     <section className="relative min-h-screen flex items-center transition-all duration-1000" aria-labelledby="hero-heading" onMouseMove={onActivate} onClick={onActivate} style={{ opacity: awake ? 1 : 0.7 }}>
       <div className="container relative">
         <div className="max-w-3xl">
-          <div className="flex items-center gap-3 mb-10">
-            <div className="w-8 h-px bg-border" />
-            <p className="text-xs font-mono uppercase tracking-[0.2em] text-ink-subtle">{t.hero.label}</p>
-          </div>
           <h1 id="hero-heading" className="text-balance transition-all duration-700" style={{ fontSize: 'clamp(2.5rem, 5.5vw, 4rem)', lineHeight: 1.05, letterSpacing: '-0.03em', fontWeight: 700 }}>
             {t.hero.heading1}<br />{t.hero.heading2}
           </h1>
@@ -382,8 +360,6 @@ function LayersSection() {
   return (
     <section id="layers" className="section-padding border-t border-border" aria-labelledby="layers-heading">
       <div className="container">
-        <SystemLabel number="02" title="Architecture" />
-        <SectionLabel>{t.layers.label}</SectionLabel>
         <h2 id="layers-heading" className="text-2xl font-medium mb-16">{t.layers.heading}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border">
           {t.layers.items.map((layer, i) => {
@@ -392,7 +368,6 @@ function LayersSection() {
               <article key={layer.code} className="bg-canvas p-8 transition-colors duration-500 hover:border-t hover:border-violet-500/10" style={{ background: 'var(--color-canvas)' }}>
                 <div className="flex items-center gap-3 mb-6">
                   <Icon />
-                  <span className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle">{layer.code}</span>
                 </div>
                 <h3 className="text-lg font-medium mb-3 text-ink">{layer.title}</h3>
                 <p className="text-sm text-ink-muted leading-relaxed">{layer.description}</p>
@@ -413,7 +388,6 @@ function ProblemSection() {
     <section className="section-padding border-t border-border" aria-labelledby="problem-heading">
       <div className="container">
         <div className="max-w-2xl">
-          <SectionLabel>{t.problem.label}</SectionLabel>
           <h2 id="problem-heading" className="text-2xl md:text-3xl font-medium leading-snug text-balance">{t.problem.heading}</h2>
           <p className="mt-6 text-base text-ink-muted leading-relaxed text-balance">{t.problem.body}</p>
         </div>
@@ -429,13 +403,10 @@ function OutcomeSection() {
   return (
     <section className="section-padding border-t border-border section-dark" aria-labelledby="outcome-heading">
       <div className="container">
-        <SystemLabel number="03" title="Impact" />
-        <SectionLabel>{t.outcomes.label}</SectionLabel>
         <h2 id="outcome-heading" className="text-2xl font-medium mb-16">{t.outcomes.heading}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
           {t.outcomes.items.map((item) => (
             <div key={item.number}>
-              <span className="text-xs font-mono text-ink-subtle">{item.number}</span>
               <h3 className="text-lg font-medium mt-3 mb-2 text-ink">{item.label}</h3>
               <p className="text-sm text-ink-muted">{item.description}</p>
             </div>
@@ -453,9 +424,7 @@ function AboutSection() {
   return (
     <section id="about" className="section-padding border-t border-border" aria-labelledby="about-heading">
       <div className="container">
-        <SystemLabel number="04" title="Company" />
         <div className="max-w-2xl">
-          <SectionLabel>{t.about.label}</SectionLabel>
           <h2 id="about-heading" className="text-2xl font-medium mb-6">{t.about.heading}</h2>
           <p className="text-base text-ink-muted leading-relaxed text-balance">{t.about.body1}</p>
           <p className="mt-4 text-base text-ink-muted leading-relaxed text-balance">{t.about.body2}</p>
@@ -482,7 +451,6 @@ function ContactSection() {
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24">
           <div>
-            <SectionLabel>{t.contact.label}</SectionLabel>
             <h2 id="contact-heading" className="text-2xl md:text-3xl font-medium mb-6 text-balance">{t.contact.heading}</h2>
             <p className="text-base text-ink-muted leading-relaxed text-balance">{t.contact.body}</p>
           </div>
