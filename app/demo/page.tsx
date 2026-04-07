@@ -1,4 +1,4 @@
-import KorantisStorySection from '@/components/KorantisStorySection';
+import SystemStory from '@/components/SystemStory';
 
 export default function DemoPage() {
   return (
@@ -25,7 +25,7 @@ export default function DemoPage() {
       </section>
 
       {/* ── Story section (horizontal scroll) ─────────────────── */}
-      <KorantisStorySection />
+      <SystemStory />
 
       {/* ── CTA ───────────────────────────────────────────────── */}
       <section className="flex min-h-screen items-center justify-center px-8">

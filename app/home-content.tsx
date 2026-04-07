@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import type { ContactFormData } from '@/lib/types';
 import { LangProvider, useLang } from '@/lib/i18n';
-import KorantisStorySection from '@/components/KorantisStorySection';
+import SystemStory from '@/components/SystemStory';
 
 // ─── Brand ────────────────────────────────────────────────────────────
 
@@ -527,7 +527,7 @@ function HomePageInner() {
       <Header menuOpen={menuOpen} onToggle={useCallback(() => setMenuOpen((p) => !p), [])} />
       <HeroSection awake={awake} onActivate={handleActivate} />
       <ProblemSection />
-      <KorantisStorySection />
+      <SystemStory />
       <LayersSection />
       <OutcomeSection />
       <AboutSection />
