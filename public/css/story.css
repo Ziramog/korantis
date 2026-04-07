@@ -64,37 +64,6 @@
   color: rgba(255, 255, 255, 0.75);
 }
 
-/* ── FIBER BACKGROUND ── */
-
-.fiber-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100%;
-  background-image: url('/fiber_background.webp');
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: cover;
-  opacity: 0.25;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* INTEGRATION FADE */
-
-.fiber-bg::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.6),
-    rgba(0, 0, 0, 0.15),
-    rgba(0, 0, 0, 0.6)
-  );
-}
-
 /* ── REDUCED MOTION ── */
 
 @media (prefers-reduced-motion: reduce) {
@@ -120,9 +89,5 @@
     padding-right: 8vw;
     opacity: 1 !important;
     transform: none !important;
-  }
-
-  .fiber-bg {
-    display: none;
   }
 }

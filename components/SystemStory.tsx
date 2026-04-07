@@ -13,13 +13,11 @@ const PANELS = [
 export default function SystemStory() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
-  const bgRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const section = sectionRef.current;
     const track = trackRef.current;
-    const bg = bgRef.current;
-    if (!section || !track || !bg) return;
+    if (!section || !track) return;
 
     let raf: number;
     let smoothProgress = 0;
@@ -36,11 +34,6 @@ export default function SystemStory() {
       const x = maxTranslate * smoothProgress;
 
       track.style.transform = `translateX(-${x}px)`;
-
-      // parallax background — subtle shift with slight scale for coverage
-      const bgScale = 1.08;
-      const bgX = x * 0.3;
-      bg.style.transform = `scale(${bgScale}) translateX(-${bgX}px)`;
 
       const panels = track.children;
       const count = panels.length;
@@ -64,8 +57,6 @@ export default function SystemStory() {
 
   return (
     <section ref={sectionRef} className="story-wrapper" aria-label="How systems scale">
-      <div ref={bgRef} className="fiber-bg" />
-
       <div className="story-sticky">
         <div ref={trackRef} className="story-track">
           {PANELS.map((panel) => (
