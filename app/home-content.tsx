@@ -451,7 +451,6 @@ function ContactSection() {
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24">
           <div>
-            <img src="/korantisicon.svg" alt="" className="h-6 w-auto mb-4 opacity-70" aria-hidden="true" />
             <h2 id="contact-heading" className="text-2xl md:text-3xl font-medium mb-6 text-balance">{t.contact.heading}</h2>
             <p className="text-base text-ink-muted leading-relaxed text-balance">{t.contact.body}</p>
           </div>
@@ -484,9 +483,12 @@ function ContactSection() {
               </div>
             )}
 
-            <button type="submit" disabled={submitting} className="korantis-btn korantis-btn--primary mt-2 w-full">
-              {submitting ? (<><Spinner /> {t.contact.submitting}</>) : (<>{t.contact.submit} <IconArrow /></>)}
-            </button>
+            <div className="flex items-center gap-4 mt-2 w-full">
+              <img src="/korantisicon.svg" alt="" className="h-24 w-auto shrink-0 opacity-80" aria-hidden="true" />
+              <button type="submit" disabled={submitting} className="korantis-btn korantis-btn--primary flex-1">
+                {submitting ? (<><Spinner /> {t.contact.submitting}</>) : (<>{t.contact.submit} <IconArrow /></>)}
+              </button>
+            </div>
           </form>
         </div>
       </div>
