@@ -297,11 +297,16 @@ function Header({ menuOpen, onToggle }: HeaderProps) {
     <header className="fixed top-0 left-0 right-0 z-50 bg-canvas/80 backdrop-blur-md border-b border-border/50" role="banner">
       <div className="container flex items-center justify-between h-14">
 
-        <nav className="hidden md:flex items-center gap-10" aria-label="Main navigation">
-          <a href="#layers" className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">{t.nav.layers}</a>
-          <a href="#about"  className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">{t.nav.about}</a>
-          <a href="#contact" className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">{t.nav.contact}</a>
-        </nav>
+        <div className="flex items-center gap-8">
+          <a href="/" aria-label="Korantis home" className="shrink-0">
+            <img src="/Kbrand.png" alt="Korantis" className="h-7 w-auto" />
+          </a>
+          <nav className="hidden md:flex items-center gap-10" aria-label="Main navigation">
+            <a href="#layers" className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">{t.nav.layers}</a>
+            <a href="#about"  className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">{t.nav.about}</a>
+            <a href="#contact" className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">{t.nav.contact}</a>
+          </nav>
+        </div>
 
         <LangToggle />
 
@@ -315,7 +320,10 @@ function Header({ menuOpen, onToggle }: HeaderProps) {
           <a href="#layers"  className="block py-3 px-4 text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle border-b border-border hover:text-ink transition-colors" onClick={onToggle}>{t.nav.layers}</a>
           <a href="#about"   className="block py-3 px-4 text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle border-b border-border hover:text-ink transition-colors" onClick={onToggle}>{t.nav.about}</a>
           <a href="#contact" className="block py-3 px-4 text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle hover:text-ink transition-colors" onClick={onToggle}>{t.nav.contact}</a>
-          <div className="py-3 px-4"><LangToggle /></div>
+          <div className="flex items-center gap-4 py-3 px-4">
+            <img src="/Kbrand.png" alt="Korantis" className="h-5 w-auto opacity-60" />
+            <LangToggle />
+          </div>
         </div>
       </nav>
     </header>
@@ -451,6 +459,7 @@ function ContactSection() {
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24">
           <div>
+            <img src="/Kbrand.png" alt="Korantis" className="h-10 w-auto mb-6" />
             <h2 id="contact-heading" className="text-2xl md:text-3xl font-medium mb-6 text-balance">{t.contact.heading}</h2>
             <p className="text-base text-ink-muted leading-relaxed text-balance">{t.contact.body}</p>
           </div>
