@@ -39,11 +39,11 @@
 
 .panel-index {
   font-size: 12px;
-  opacity: 0.3;
   margin-bottom: 12px;
   letter-spacing: 2px;
   font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
-  color: rgba(255, 255, 255, 0.5);
+  color: #fff;
+  text-shadow: 0 0 12px rgba(122, 92, 255, 0.8), 0 0 24px rgba(122, 92, 255, 0.4);
 }
 
 .panel h2 {
