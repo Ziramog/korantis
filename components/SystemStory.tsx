@@ -19,49 +19,50 @@ export default function SystemStory() {
     const track = trackRef.current;
     if (!section || !track) return;
 
-    let raf: number;
-    let smoothProgress = 0;
-    const lerp = 0.07;
+    const w = window.innerWidth;
+    const pw = w * 0.66;
 
-    // Layout constants
-    const panelWidth = window.innerWidth * 0.66; // 66vw — 1/3 narrower
-    const trackWidth = PANELS.length * panelWidth;
-    const maxScroll = trackWidth - window.innerWidth;
-    const initialOffset = (window.innerWidth - panelWidth) / 2; // center first panel
+    // Track positions so first panel starts centered, last panel ends centered
+    const trackStart = w / 2 - pw / 2;
+    const trackEnd = w / 2 - (PANELS.length - 0.5) * pw;
+    const maxScroll = trackStart - trackEnd;
 
     // Precompute panel centers in track space
-    const panelCenters = PANELS.map((_, i) => (i + 0.5) * panelWidth);
+    const panelCenters = PANELS.map((_, i) => (i + 0.5) * pw);
+
+    let raf: number;
+    let smoothProgress = 0;
+    const lerp = 0.06;
 
     const tick = () => {
       const rect = section.getBoundingClientRect();
-      const scrollRange = section.offsetHeight - window.innerHeight;
+      const scrollRange = section.offsetHeight - w;
       const raw = Math.min(Math.max(-rect.top / scrollRange, 0), 1);
 
       smoothProgress += (raw - smoothProgress) * lerp;
 
       // Move track
-      const x = maxScroll * smoothProgress;
-      track.style.transform = `translateX(${-initialOffset - x}px)`;
+      const tx = trackStart - maxScroll * smoothProgress;
+      track.style.transform = `translateX(${tx}px)`;
 
       // Viewport center in track coordinates
-      const vpCenter = initialOffset + panelWidth / 2 + x;
+      const vpCenter = -tx + w / 2;
 
-      // Spotlight: each panel's brightness based on distance to viewport center
       const panels = track.children;
       const count = panels.length;
 
       for (let i = 0; i < count; i++) {
         const panel = panels[i] as HTMLElement;
-        const dist = Math.abs(panelCenters[i] - vpCenter) / panelWidth;
+        const dist = Math.abs(panelCenters[i] - vpCenter) / pw;
 
-        // Gaussian falloff: 1.0 at center, ~0.1 at dist=0.5
-        const brightness = Math.exp(-dist * dist * 12);
-        const opacity = Math.max(0.08, brightness);
+        // Wider Gaussian: readable zone is ~40% of viewport
+        const brightness = Math.exp(-dist * dist * 6);
+        const opacity = Math.max(0.12, brightness);
 
-        // Depth: panels off-center get subtle scale-down + blur
-        const scale = 0.92 + 0.08 * brightness;
-        const blur = (1 - brightness) * 3;
-        const y = (1 - brightness) * 20;
+        // Depth: off-center panels recede
+        const scale = 0.94 + 0.06 * brightness;
+        const blur = (1 - brightness) * 2.5;
+        const y = (1 - brightness) * 16;
 
         panel.style.opacity = String(opacity);
         panel.style.filter = `blur(${blur}px)`;
