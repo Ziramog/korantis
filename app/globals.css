@@ -196,6 +196,13 @@ a {
   }
 }
 
+/* ── No Grid (during horizontal scroll sections) ──────────────────── */
+
+body.no-grid .grid-zone {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
 /* ── Reduced Motion ─────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {

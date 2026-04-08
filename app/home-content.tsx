@@ -58,19 +58,17 @@ function BackgroundLayers({ awake: _awake }: { awake: boolean }) {
     const drawGrid = () => {
       ctx.clearRect(0, 0, w, h);
 
-      const size = 100;
+      const size = 24;
       const centerX = w / 2;
       const centerY = h / 2;
 
-      // Vertical lines
-      const pulse = Math.sin(time) * 0.02;
+      const pulse = Math.sin(time) * 0.05;
 
       for (let x = 0; x < w; x += size) {
         const dist = Math.abs(x + offsetX - centerX) / w;
-        const isMajor = x % (size * 4) === 0;
-        const base = isMajor ? 0.50 : 0.30;
-        const lw = isMajor ? 1.2 : 0.6;
-        const opacity = base + (1 - dist) * (0.15 + pulse);
+        const base = 0.30;
+        const lw = 0.3;
+        const opacity = base + (1 - dist) * (0.20 + pulse);
 
         ctx.strokeStyle = `rgba(255,255,255,${Math.min(opacity, 0.70)})`;
         ctx.lineWidth = lw;
@@ -81,13 +79,11 @@ function BackgroundLayers({ awake: _awake }: { awake: boolean }) {
         ctx.stroke();
       }
 
-      // Horizontal lines
       for (let y = 0; y < h; y += size) {
         const distY = Math.abs(y + offsetY - centerY) / h;
-        const isMajorY = y % (size * 4) === 0;
-        const baseY = isMajorY ? 0.50 : 0.30;
-        const lwY = isMajorY ? 1.2 : 0.6;
-        const opacityY = baseY + (1 - distY) * (0.15 + pulse);
+        const baseY = 0.30;
+        const lwY = 0.3;
+        const opacityY = baseY + (1 - distY) * (0.20 + pulse);
 
         ctx.strokeStyle = `rgba(255,255,255,${Math.min(opacityY, 0.70)})`;
         ctx.lineWidth = lwY;
