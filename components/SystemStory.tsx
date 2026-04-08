@@ -1,16 +1,26 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
+import { useLang } from '@/lib/i18n';
 import '@/public/css/story.css';
 
-const PANELS = [
-  { index: '01', title: 'Friction', text: 'Time lost. Opportunities missed. Every manual process is a tax on growth.' },
-  { index: '02', title: 'Systems are not tools', text: 'They are the architecture of execution.' },
-  { index: '03', title: 'Visibility creates leverage', text: 'What you can see, you can scale.' },
-  { index: '04', title: 'Execution compounds', text: 'Systems turn consistency into exponential results.' },
-] as const;
+const PANELS = {
+  en: [
+    { index: '01', title: 'Friction', text: 'Time lost. Opportunities missed. Every manual process is a tax on growth.' },
+    { index: '02', title: 'Systems are not tools', text: 'They are the architecture of execution.' },
+    { index: '03', title: 'Visibility creates leverage', text: 'What you can see, you can scale.' },
+    { index: '04', title: 'Execution compounds', text: 'Systems turn consistency into exponential results.' },
+  ],
+  es: [
+    { index: '01', title: 'Fricción', text: 'Tiempo perdido. Oportunidades perdidas. Cada proceso manual supone un lastre para el crecimiento.' },
+    { index: '02', title: 'Los sistemas no son herramientas', text: 'Son la arquitectura de la ejecución.' },
+    { index: '03', title: 'La visibilidad genera influencia', text: 'Lo que puedes ver, puedes escalarlo.' },
+    { index: '04', title: 'La ejecución se compone', text: 'Los sistemas transforman la consistencia en resultados exponenciales.' },
+  ],
+} as const;
 
 export default function SystemStory() {
+  const { lang } = useLang();
   const sectionRef = useRef<HTMLElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
 
@@ -24,11 +34,11 @@ export default function SystemStory() {
 
     // Track positions so first panel starts centered, last panel ends centered
     const trackStart = w / 2 - pw / 2;
-    const trackEnd = w / 2 - (PANELS.length - 0.5) * pw;
+    const trackEnd = w / 2 - (PANELS.en.length - 0.5) * pw;
     const maxScroll = trackStart - trackEnd;
 
     // Precompute panel centers in track space
-    const panelCenters = PANELS.map((_, i) => (i + 0.5) * pw);
+    const panelCenters = PANELS.en.map((_, i) => (i + 0.5) * pw);
 
     let raf: number;
     let smoothProgress = 0;
@@ -76,11 +86,13 @@ export default function SystemStory() {
     return () => cancelAnimationFrame(raf);
   }, []);
 
+  const panels = PANELS[lang];
+
   return (
     <section ref={sectionRef} className="story-wrapper" aria-label="How systems scale">
       <div className="story-sticky">
         <div ref={trackRef} className="story-track">
-          {PANELS.map((panel) => (
+          {panels.map((panel) => (
             <Panel key={panel.index} {...panel} />
           ))}
         </div>
