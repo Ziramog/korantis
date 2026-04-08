@@ -154,6 +154,28 @@ a {
   text-wrap: balance;
 }
 
+@utility text-gradient {
+  background: linear-gradient(135deg, var(--color-brand-violet), var(--color-brand-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@utility text-gradient-h {
+  background: linear-gradient(90deg, var(--color-brand-violet), var(--color-brand-blue), var(--color-brand-violet));
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 4s ease infinite;
+}
+
+@utility brand-line {
+  width: 40px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-brand-violet), var(--color-brand-blue));
+}
+
 @utility sr-only {
   position: absolute;
   width: 1px;
@@ -185,6 +207,26 @@ a {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  .text-gradient-h {
+    animation: none;
+  }
+}
+
+/* ── Keyframes ──────────────────────────────────────────────────────── */
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* ── Brand Utilities ────────────────────────────────────────────────── */
+
+.brand-glow {
+  box-shadow: 0 0 20px rgba(122, 92, 255, 0.15), 0 0 40px rgba(122, 92, 255, 0.05);
+}
+
+.brand-glow-strong {
+  box-shadow: 0 0 30px rgba(122, 92, 255, 0.25), 0 0 60px rgba(122, 92, 255, 0.1);
 }
 
 /* ── High Contrast ──────────────────────────────────────────────────── */

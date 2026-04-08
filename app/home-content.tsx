@@ -330,18 +330,26 @@ function HeroSection({ awake, onActivate }: { awake: boolean; onActivate: () => 
     <section className="relative min-h-screen flex items-center transition-all duration-1000" aria-labelledby="hero-heading" onMouseMove={onActivate} onClick={onActivate} style={{ opacity: awake ? 1 : 0.7 }}>
       <div className="container relative">
         <div className="max-w-3xl">
+          <div className="flex items-center gap-3 mb-10">
+            <div className="brand-line" />
+            <p className="text-xs font-mono uppercase tracking-[0.2em] text-ink-subtle">{t.hero.label}</p>
+          </div>
           <h1 id="hero-heading" className="text-balance transition-all duration-700" style={{ fontSize: 'clamp(2.5rem, 5.5vw, 4rem)', lineHeight: 1.05, letterSpacing: '-0.03em', fontWeight: 700 }}>
-            {t.hero.heading1}<br />{t.hero.heading2}
+            {t.hero.heading1}<br />
+            <span className="text-gradient">{t.hero.heading2}</span>
           </h1>
-          <p className="mt-8 text-base text-ink-muted leading-relaxed max-w-lg text-balance transition-all duration-700" style={{ opacity: awake ? 1 : 0.6 }}>
+          <p className="mt-6 text-base text-ink-muted leading-relaxed max-w-lg text-balance transition-all duration-700" style={{ opacity: awake ? 1 : 0.6 }}>
             {t.hero.body}
           </p>
           <div className="mt-10 flex flex-wrap items-center gap-4">
-            <a href="#layers" className="korantis-btn">{t.hero.ctaPrimary}</a>
+            <a href="#layers" className="korantis-btn korantis-btn--brand">{t.hero.ctaPrimary}</a>
             <a href="#layers" className="group inline-flex items-center gap-2 text-sm text-ink-muted transition-colors duration-300 hover:text-ink">
               {t.hero.ctaSecondary} <IconArrow />
             </a>
           </div>
+          <p className="mt-8 text-sm text-ink-subtle tracking-wide text-balance">
+            {t.hero.tagline}
+          </p>
         </div>
       </div>
       <div className="absolute bottom-8 left-0 right-0 flex justify-center">

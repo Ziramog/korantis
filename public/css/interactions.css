@@ -133,6 +133,32 @@
   box-shadow: 0 0 20px rgba(122, 92, 255, 0.12);
 }
 
+/* Brand variant — violet-to-blue gradient border with glow */
+.korantis-btn--brand {
+  position: relative;
+  border: 1px solid rgba(122, 92, 255, 0.35);
+  background: linear-gradient(135deg, rgba(122, 92, 255, 0.08), rgba(37, 99, 255, 0.06));
+  color: #fff;
+  letter-spacing: 0.15em;
+}
+
+.korantis-btn--brand::before {
+  background: linear-gradient(90deg, #7A5CFF, #2563FF, #7A5CFF);
+  background-size: 200% 100%;
+  animation: gradient-shift 3s ease infinite;
+  height: 1px;
+}
+
+.korantis-btn--brand:hover {
+  border-color: rgba(122, 92, 255, 0.6);
+  box-shadow: 0 0 25px rgba(122, 92, 255, 0.2), 0 0 50px rgba(122, 92, 255, 0.08);
+  background: linear-gradient(135deg, rgba(122, 92, 255, 0.15), rgba(37, 99, 255, 0.1));
+}
+
+.korantis-btn--brand:active {
+  background: linear-gradient(135deg, rgba(122, 92, 255, 0.2), rgba(37, 99, 255, 0.15));
+}
+
 /* ──────────────────────────────────────────────────────────────────────
    4. FORM INPUTS — Minimal underline inputs with focus glow
    ────────────────────────────────────────────────────────────────────── */
