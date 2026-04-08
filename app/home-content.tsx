@@ -63,16 +63,16 @@ function BackgroundLayers({ awake: _awake }: { awake: boolean }) {
       const centerY = h / 2;
 
       // Vertical lines
-      const pulse = Math.sin(time) * 0.003;
+      const pulse = Math.sin(time) * 0.02;
 
       for (let x = 0; x < w; x += size) {
         const dist = Math.abs(x + offsetX - centerX) / w;
         const isMajor = x % (size * 4) === 0;
-        const base = isMajor ? 0.03 : 0.015;
-        const lw = isMajor ? 0.8 : 0.4;
-        const opacity = base + (1 - dist) * (0.015 + pulse);
+        const base = isMajor ? 0.50 : 0.30;
+        const lw = isMajor ? 1.2 : 0.6;
+        const opacity = base + (1 - dist) * (0.15 + pulse);
 
-        ctx.strokeStyle = `rgba(255,255,255,${opacity})`;
+        ctx.strokeStyle = `rgba(255,255,255,${Math.min(opacity, 0.70)})`;
         ctx.lineWidth = lw;
 
         ctx.beginPath();
@@ -85,11 +85,11 @@ function BackgroundLayers({ awake: _awake }: { awake: boolean }) {
       for (let y = 0; y < h; y += size) {
         const distY = Math.abs(y + offsetY - centerY) / h;
         const isMajorY = y % (size * 4) === 0;
-        const baseY = isMajorY ? 0.03 : 0.015;
-        const lwY = isMajorY ? 0.8 : 0.4;
-        const opacityY = baseY + (1 - distY) * (0.015 + pulse);
+        const baseY = isMajorY ? 0.50 : 0.30;
+        const lwY = isMajorY ? 1.2 : 0.6;
+        const opacityY = baseY + (1 - distY) * (0.15 + pulse);
 
-        ctx.strokeStyle = `rgba(255,255,255,${opacityY})`;
+        ctx.strokeStyle = `rgba(255,255,255,${Math.min(opacityY, 0.70)})`;
         ctx.lineWidth = lwY;
 
         ctx.beginPath();
