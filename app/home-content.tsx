@@ -179,22 +179,22 @@ function Header({ menuOpen, onToggle }: HeaderProps) {
   const { t } = useLang();
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-canvas/95 backdrop-blur-md border-b border-border/50" role="banner">
-      <div className="container flex flex-col items-center justify-center py-5">
-        <div className="flex items-center gap-6 mb-4">
-          <img src="/korantis full.png" alt="Korantis" className="h-12 w-auto" />
-        </div>
-        <div className="flex items-center justify-between w-full">
-          <nav className="hidden md:flex items-center gap-10" aria-label="Main navigation">
+      <div className="container flex items-center justify-between h-16">
+
+        <div className="flex items-center gap-8">
+          <img src="/korantis full.png" alt="Korantis" className="h-8 w-auto" />
+          <nav className="hidden md:flex items-center gap-8" aria-label="Main navigation">
             <a href="#layers" className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">{t.nav.layers}</a>
             <a href="#about"  className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">{t.nav.about}</a>
             <a href="#contact" className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">{t.nav.contact}</a>
           </nav>
-          <div className="flex items-center gap-4">
-            <LangToggle />
-            <button className="md:hidden p-2 text-ink-subtle hover:text-ink transition-colors" onClick={onToggle} aria-expanded={menuOpen} aria-label={menuOpen ? 'Close menu' : 'Open menu'}>
-              {menuOpen ? <IconClose /> : <IconMenu />}
-            </button>
-          </div>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <LangToggle />
+          <button className="md:hidden p-2 text-ink-subtle hover:text-ink transition-colors" onClick={onToggle} aria-expanded={menuOpen} aria-label={menuOpen ? 'Close menu' : 'Open menu'}>
+            {menuOpen ? <IconClose /> : <IconMenu />}
+          </button>
         </div>
       </div>
 

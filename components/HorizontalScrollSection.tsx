@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef, useState, useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import DataFlowBackground from './DataFlowBackground';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -73,6 +74,9 @@ export default function HorizontalScrollSection({
       className="relative w-full overflow-hidden"
       aria-label="Horizontal scroll section"
     >
+      {/* Absolute atmospheric flow background fixed behind horizontal scrolling panels */}
+      {!isMobile && <DataFlowBackground />}
+
       <div
         ref={containerRef}
         className={`flex ${isMobile ? '!flex-col !h-auto !w-full' : 'w-max'}`}
