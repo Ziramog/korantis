@@ -68,6 +68,10 @@ export default function SystemStory() {
       // Update custom property for background parallax depth and spiral
       section.style.setProperty('--scroll-progress', smoothProgress.toString());
       
+      // Calculate extreme runaway trigger that ONLY fires upon locking into Panel 04
+      const runaway = Math.max(0, (smoothProgress - 0.85) / 0.15);
+      section.style.setProperty('--scroll-runaway', runaway.toString());
+      
       // Track vertical entry so strands can print/grow before the lock
       const entryRaw = Math.min(Math.max(1 - (rect.top / window.innerHeight), 0), 1);
       section.style.setProperty('--entry-progress', entryRaw.toString());
@@ -119,7 +123,7 @@ export default function SystemStory() {
     <section ref={sectionRef} className="story-wrapper" aria-label="How systems scale">
       <div className="story-sticky">
         <DataFlowBackground />
-        <div ref={trackRef} className="story-track">
+        <div ref={trackRef} className="story-track relative z-10">
           {panels.map((panel) => (
             <Panel key={panel.index} {...panel} />
           ))}
