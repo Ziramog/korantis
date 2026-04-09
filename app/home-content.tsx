@@ -181,11 +181,14 @@ function Header({ menuOpen, onToggle }: HeaderProps) {
     <header className="fixed top-0 left-0 right-0 z-50 bg-canvas/80 backdrop-blur-md border-b border-border/50" role="banner">
       <div className="container flex items-center justify-between h-14">
 
-        <nav className="hidden md:flex items-center gap-10" aria-label="Main navigation">
-          <a href="#layers" className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">{t.nav.layers}</a>
-          <a href="#about"  className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">{t.nav.about}</a>
-          <a href="#contact" className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">{t.nav.contact}</a>
-        </nav>
+        <div className="flex items-center gap-4">
+          <img src="/iconheader.png" alt="Korantis" className="h-7 w-auto" />
+          <nav className="hidden md:flex items-center gap-10" aria-label="Main navigation">
+            <a href="#layers" className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">{t.nav.layers}</a>
+            <a href="#about"  className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">{t.nav.about}</a>
+            <a href="#contact" className="text-xs font-mono uppercase tracking-[0.15em] text-ink-subtle transition-colors duration-300 hover:text-ink">{t.nav.contact}</a>
+          </nav>
+        </div>
 
         <LangToggle />
 
@@ -213,27 +216,32 @@ function HeroSection({ awake, onActivate }: { awake: boolean; onActivate: () => 
   return (
     <section className="relative min-h-screen flex items-center transition-all duration-1000" aria-labelledby="hero-heading" onMouseMove={onActivate} onClick={onActivate} style={{ opacity: awake ? 1 : 0.7 }}>
       <div className="container relative">
-        <div className="max-w-3xl">
-          <div className="flex items-center gap-3 mb-10">
-            <div className="brand-line" />
-            <p className="text-xs font-mono uppercase tracking-[0.2em] text-ink-subtle">{t.hero.label}</p>
+        <div className="flex items-start gap-16 max-w-5xl">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-10">
+              <div className="brand-line" />
+              <p className="text-xs font-mono uppercase tracking-[0.2em] text-ink-subtle">{t.hero.label}</p>
+            </div>
+            <h1 id="hero-heading" className="text-balance transition-all duration-700" style={{ fontSize: 'clamp(2.5rem, 5.5vw, 4rem)', lineHeight: 1.05, letterSpacing: '-0.03em', fontWeight: 700 }}>
+              {t.hero.heading1}<br />
+              <span className="text-gradient">{t.hero.heading2}</span>
+            </h1>
+            <p className="mt-6 text-base text-ink-muted leading-relaxed max-w-lg text-balance transition-all duration-700" style={{ opacity: awake ? 1 : 0.6 }}>
+              {t.hero.body}
+            </p>
+            <div className="mt-10 flex flex-wrap items-center gap-4">
+              <a href="#layers" className="korantis-btn korantis-btn--brand">{t.hero.ctaPrimary}</a>
+              <a href="#layers" className="group inline-flex items-center gap-2 text-sm text-ink-muted transition-colors duration-300 hover:text-ink">
+                {t.hero.ctaSecondary} <IconArrow />
+              </a>
+            </div>
+            <p className="mt-8 text-sm text-ink-subtle tracking-wide text-balance">
+              {t.hero.tagline}
+            </p>
           </div>
-          <h1 id="hero-heading" className="text-balance transition-all duration-700" style={{ fontSize: 'clamp(2.5rem, 5.5vw, 4rem)', lineHeight: 1.05, letterSpacing: '-0.03em', fontWeight: 700 }}>
-            {t.hero.heading1}<br />
-            <span className="text-gradient">{t.hero.heading2}</span>
-          </h1>
-          <p className="mt-6 text-base text-ink-muted leading-relaxed max-w-lg text-balance transition-all duration-700" style={{ opacity: awake ? 1 : 0.6 }}>
-            {t.hero.body}
-          </p>
-          <div className="mt-10 flex flex-wrap items-center gap-4">
-            <a href="#layers" className="korantis-btn korantis-btn--brand">{t.hero.ctaPrimary}</a>
-            <a href="#layers" className="group inline-flex items-center gap-2 text-sm text-ink-muted transition-colors duration-300 hover:text-ink">
-              {t.hero.ctaSecondary} <IconArrow />
-            </a>
+          <div className="hidden md:flex items-center justify-center pt-8">
+            <img src="/korantis full.png" alt="" className="max-w-sm w-auto h-auto opacity-90" aria-hidden="true" />
           </div>
-          <p className="mt-8 text-sm text-ink-subtle tracking-wide text-balance">
-            {t.hero.tagline}
-          </p>
         </div>
       </div>
       <div className="absolute bottom-8 left-0 right-0 flex justify-center">
