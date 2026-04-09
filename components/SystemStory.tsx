@@ -60,7 +60,8 @@ export default function SystemStory() {
       section.style.setProperty('--scroll-progress', smoothProgress.toString());
       
       // Calculate a fading "pulse" wave that peaks as captions center
-      const pulse = Math.sin(smoothProgress * Math.PI * (count - 1));
+      const numPanels = track.children.length;
+      const pulse = Math.sin(smoothProgress * Math.PI * (numPanels - 1));
       section.style.setProperty('--scroll-pulse', pulse.toString());
 
       // Viewport center in track coordinates
