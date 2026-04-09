@@ -42,11 +42,11 @@ export default function DataFlowBackground() {
       {/* Extremely faint dark radial gradient to give depth, preventing total flatness */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(25,25,30,0.06)_0%,transparent_100%)]" />
 
-      {/* The light strands growing from the right mapped to the scroll progress */}
+      {/* The light strands growing from the right on ENTRY, then moving left on HORIZONTAL SCROLL */}
       <div 
-        className="absolute inset-0 will-change-transform"
+        className="absolute inset-0 border-0 will-change-transform"
         style={{ 
-          transform: 'translateY(calc(var(--scroll-pulse, 0) * 8vh)) rotate(calc(var(--scroll-progress, 0) * 5deg)) scale(1.1)',
+          transform: 'translateX(calc(var(--scroll-progress, 0) * -60vw)) translateY(calc(var(--scroll-pulse, 0) * 8vh)) rotate(calc(var(--scroll-progress, 0) * 5deg)) scale(1.1)',
           opacity: 'calc(0.6 + (var(--scroll-pulse, 0) * 0.4))',
           transition: 'transform 0.1s linear, opacity 0.1s linear'
         }}
@@ -57,8 +57,8 @@ export default function DataFlowBackground() {
             className="absolute right-0 h-[1px]"
             style={{
               top: `${strand.top}%`,
-              // This clamp ensures they organically grow from 0 to their max width staggered over the scroll duration!
-              width: `clamp(0vw, calc((var(--scroll-progress, 0) * 140vw) - ${strand.stagger}vw), ${strand.width}vw)`,
+              // Growth magic: clamp width mapped to vertical entry, they are already drawn by Panel 01!
+              width: `clamp(0vw, calc((var(--entry-progress, 0) * 140vw) - ${strand.stagger}vw), ${strand.width}vw)`,
               opacity: strand.opacity,
               background: `linear-gradient(-90deg, transparent 0%, ${strand.colorToken} 50%, transparent 100%)`,
               willChange: 'width',
@@ -68,11 +68,11 @@ export default function DataFlowBackground() {
         ))}
       </div>
 
-      {/* Subtle curved SVG path data flows growing incrementally right-to-left */}
+      {/* Subtle curved SVG path data flows overlay */}
       <svg 
         className="absolute inset-0 w-full h-full opacity-[0.14] will-change-transform" 
         style={{ 
-          transform: 'translateY(calc(var(--scroll-pulse, 0) * -4vh)) rotate(calc(var(--scroll-progress, 0) * -2deg))',
+          transform: 'translateX(calc(var(--scroll-progress, 0) * -35vw)) translateY(calc(var(--scroll-pulse, 0) * -4vh)) rotate(calc(var(--scroll-progress, 0) * -2deg))',
           opacity: 'calc(0.7 + (var(--scroll-pulse, 0) * 0.3))',
           transition: 'transform 0.1s linear, opacity 0.1s linear'
         }}
@@ -83,8 +83,8 @@ export default function DataFlowBackground() {
             .flow-line, .flow-line-blue, .flow-line-violet {
               fill: none;
               stroke-dasharray: 1000;
-              /* Draw from end to start (right to left) tied perfectly to scroll */
-              stroke-dashoffset: calc(-1000 + (var(--scroll-progress, 0) * 1000));
+              /* Draw right-to-left entirely BEFORE panel 01 locks in using entry progress */
+              stroke-dashoffset: calc(-1000 + (var(--entry-progress, 0) * 1000));
             }
             .flow-line {
               stroke: url(#flow-grad-white);

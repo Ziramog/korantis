@@ -59,6 +59,10 @@ export default function SystemStory() {
       // Update custom property for background parallax depth and spiral
       section.style.setProperty('--scroll-progress', smoothProgress.toString());
       
+      // Track vertical entry so strands can print/grow before the lock
+      const entryRaw = Math.min(Math.max(1 - (rect.top / window.innerHeight), 0), 1);
+      section.style.setProperty('--entry-progress', entryRaw.toString());
+      
       // Calculate a fading "pulse" wave that peaks as captions center
       const numPanels = track.children.length;
       const pulse = Math.sin(smoothProgress * Math.PI * (numPanels - 1));
