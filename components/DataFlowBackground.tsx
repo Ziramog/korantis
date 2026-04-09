@@ -46,8 +46,11 @@ export default function DataFlowBackground() {
       <div 
         className="absolute inset-0 border-0 will-change-transform"
         style={{ 
-          transform: 'translateX(calc(var(--scroll-progress, 0) * -60vw)) translateY(calc(var(--scroll-pulse, 0) * 8vh)) rotate(calc(var(--scroll-progress, 0) * 5deg)) scale(1.1)',
+          transform: 'translateX(calc(var(--scroll-progress, 0) * -30vw - var(--scroll-exit, 0) * 150vw)) translateY(calc(var(--scroll-pulse, 0) * 8vh)) rotate(calc(var(--scroll-progress, 0) * 5deg)) scale(1.1)',
           opacity: 'calc(0.6 + (var(--scroll-pulse, 0) * 0.4))',
+          WebkitMaskImage: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,1) 80%, rgba(0,0,0,0.3) 100%)',
+          WebkitMaskSize: '30vw 100%',
+          WebkitMaskPosition: 'calc(var(--scroll-progress, 0) * 300vw) 0',
           transition: 'transform 0.1s linear, opacity 0.1s linear'
         }}
       >
@@ -72,8 +75,11 @@ export default function DataFlowBackground() {
       <svg 
         className="absolute inset-0 w-full h-full opacity-[0.14] will-change-transform" 
         style={{ 
-          transform: 'translateX(calc(var(--scroll-progress, 0) * -35vw)) translateY(calc(var(--scroll-pulse, 0) * -4vh)) rotate(calc(var(--scroll-progress, 0) * -2deg))',
+          transform: 'translateX(calc(var(--scroll-progress, 0) * -20vw - var(--scroll-exit, 0) * 150vw)) translateY(calc(var(--scroll-pulse, 0) * -4vh)) rotate(calc(var(--scroll-progress, 0) * -2deg))',
           opacity: 'calc(0.7 + (var(--scroll-pulse, 0) * 0.3))',
+          WebkitMaskImage: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,1) 30%, rgba(0,0,0,0.5) 100%)',
+          WebkitMaskSize: '40vw 100%',
+          WebkitMaskPosition: 'calc(var(--scroll-progress, 0) * 150vw) 0',
           transition: 'transform 0.1s linear, opacity 0.1s linear'
         }}
         preserveAspectRatio="none"

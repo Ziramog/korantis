@@ -90,9 +90,9 @@
   background: linear-gradient(to left, #0B0B0D, transparent);
 }
 
-/* ── REDUCED MOTION ── */
+/* ── REDUCED MOTION & MOBILE FALLBACK ── */
 
-@media (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: reduce), (max-width: 768px) {
   .story-wrapper {
     height: auto;
   }

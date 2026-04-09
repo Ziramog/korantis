@@ -30,6 +30,15 @@ export default function SystemStory() {
     const track = trackRef.current;
     if (!section || !track) return;
 
+    if (window.innerWidth < 768) {
+      // On mobile, bypass horizontal scroll logic and let CSS vertical stacking take over natively
+      section.style.setProperty('--scroll-progress', '0');
+      section.style.setProperty('--scroll-pulse', '0');
+      section.style.setProperty('--scroll-exit', '0');
+      section.style.setProperty('--entry-progress', '1');
+      return;
+    }
+
     const w = window.innerWidth;
     const pw = w * 0.66;
 
@@ -67,6 +76,11 @@ export default function SystemStory() {
       const numPanels = track.children.length;
       const pulse = Math.sin(smoothProgress * Math.PI * (numPanels - 1));
       section.style.setProperty('--scroll-pulse', pulse.toString());
+
+      // Track 'exiting' phase: only ramps from 0 to 1 between the last two panels (approaching 04)
+      const lastPanelThreshold = (numPanels - 2) / (numPanels - 1); // e.g. 2/3 for 4 panels = 0.666
+      const exitProgress = Math.max(0, (smoothProgress - lastPanelThreshold) / (1 - lastPanelThreshold));
+      section.style.setProperty('--scroll-exit', exitProgress.toString());
 
       // Viewport center in track coordinates
       const vpCenter = -tx + w / 2;
