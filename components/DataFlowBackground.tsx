@@ -43,8 +43,11 @@ export default function DataFlowBackground() {
       {/* Extremely faint dark radial gradient to give depth, preventing total flatness */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(25,25,30,0.06)_0%,transparent_100%)]" />
 
-      {/* The light strands moving horizontally */}
-      <div className="absolute inset-0">
+      {/* The light strands moving horizontally with parallax depth */}
+      <div 
+        className="absolute inset-0 will-change-transform"
+        style={{ transform: 'translateX(calc(var(--scroll-progress, 0) * -15vw))' }}
+      >
         {strands.map((strand, i) => (
           <div
             key={`strand-${i}`}
@@ -63,7 +66,11 @@ export default function DataFlowBackground() {
       </div>
 
       {/* Subtle curved SVG path data flows overlay representing organic/flexible flow */}
-      <svg className="absolute inset-0 w-full h-full opacity-[0.14]" preserveAspectRatio="none">
+      <svg 
+        className="absolute inset-0 w-full h-full opacity-[0.14] will-change-transform" 
+        style={{ transform: 'translateX(calc(var(--scroll-progress, 0) * -8vw))' }}
+        preserveAspectRatio="none"
+      >
         <style>
           {`
             .flow-line {

@@ -56,6 +56,9 @@ export default function SystemStory() {
       const tx = trackStart - maxScroll * smoothProgress;
       track.style.transform = `translateX(${tx}px)`;
 
+      // Update custom property for background parallax depth
+      section.style.setProperty('--scroll-progress', smoothProgress.toString());
+
       // Viewport center in track coordinates
       const vpCenter = -tx + w / 2;
 
