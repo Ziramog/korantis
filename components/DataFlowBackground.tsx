@@ -44,14 +44,15 @@ export default function DataFlowBackground() {
 
       {/* The light strands growing on entry, with TRUE SPIRAL motion on scroll */}
       <div 
-        className="absolute top-1/2 left-1/2 w-[250vw] h-[250vw] -translate-x-1/2 -translate-y-1/2 border-0 will-change-transform pointer-events-none"
+        className="absolute inset-0 border-0 will-change-transform pointer-events-none"
         style={{ 
-          transform: 'translate(-50%, -50%) perspective(150vw) rotateZ(calc(var(--scroll-progress, 0) * -110deg)) rotateX(calc(var(--scroll-progress, 0) * 15deg)) scale(calc(1 + (var(--scroll-progress, 0) * 0.3)))',
+          transform: 'perspective(150vw) rotateX(calc(var(--scroll-progress, 0) * 60deg)) rotateZ(calc(var(--scroll-progress, 0) * -15deg)) translateY(calc(var(--scroll-pulse, 0) * 10vh)) scale(1.3)',
           opacity: 'calc(0.6 + (var(--scroll-pulse, 0) * 0.4))',
           WebkitMaskImage: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,1) 25%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,1) 75%, rgba(0,0,0,0.2) 100%)',
           WebkitMaskSize: '30vw 100%',
           WebkitMaskPosition: 'calc(var(--scroll-progress, 0) * 300vw) 0',
-          transition: 'transform 0.1s linear, opacity 0.1s linear'
+          transition: 'transform 0.1s linear, opacity 0.1s linear',
+          transformOrigin: 'center right'
         }}
       >
         {strands.map((strand, i) => (
@@ -60,8 +61,8 @@ export default function DataFlowBackground() {
             className="absolute right-0 h-[1px]"
             style={{
               top: `${strand.top}%`,
-              // Clamp width ensuring they reach far enough to span the oversized rotated container
-              width: `clamp(0vw, calc((var(--entry-progress, 0) * 200vw) - ${strand.stagger}vw), calc(${strand.width}vw + 50vw))`,
+              // Growth magic: clamp width mapped to vertical entry, they are already drawn by Panel 01!
+              width: `clamp(0vw, calc((var(--entry-progress, 0) * 150vw) - ${strand.stagger}vw), ${strand.width}vw)`,
               opacity: strand.opacity,
               background: `linear-gradient(-90deg, transparent 0%, ${strand.colorToken} 50%, transparent 100%)`,
               willChange: 'width',
@@ -73,14 +74,15 @@ export default function DataFlowBackground() {
 
       {/* Subtle curved SVG path data flows overlay mapped inside spiral logic */}
       <svg 
-        className="absolute top-1/2 left-1/2 w-[250vw] h-[250vw] opacity-[0.14] will-change-transform" 
+        className="absolute inset-0 w-full h-full opacity-[0.14] will-change-transform" 
         style={{ 
-          transform: 'translate(-50%, -50%) perspective(150vw) rotateZ(calc(var(--scroll-progress, 0) * -130deg)) rotateY(calc(var(--scroll-progress, 0) * 10deg)) scale(1)',
+          transform: 'perspective(150vw) rotateX(calc(var(--scroll-progress, 0) * 50deg)) rotateZ(calc(var(--scroll-progress, 0) * -20deg)) scale(1.2)',
           opacity: 'calc(0.7 + (var(--scroll-pulse, 0) * 0.3))',
           WebkitMaskImage: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,1) 30%, rgba(0,0,0,0.3) 100%)',
           WebkitMaskSize: '40vw 100%',
           WebkitMaskPosition: 'calc(var(--scroll-progress, 0) * 150vw) 0',
-          transition: 'transform 0.1s linear, opacity 0.1s linear'
+          transition: 'transform 0.1s linear, opacity 0.1s linear',
+          transformOrigin: 'center right'
         }}
         preserveAspectRatio="none"
       >
