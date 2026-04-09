@@ -90,9 +90,19 @@
   background: linear-gradient(to left, #0B0B0D, transparent);
 }
 
-/* ── REDUCED MOTION & MOBILE FALLBACK ── */
+/* ── MOBILE OVERRIDES ── */
 
-@media (prefers-reduced-motion: reduce), (max-width: 768px) {
+@media (max-width: 768px) {
+  .panel {
+    width: 85vw;
+    min-width: 85vw;
+    padding: 0 6vw;
+  }
+}
+
+/* ── REDUCED MOTION ── */
+
+@media (prefers-reduced-motion: reduce) {
   .story-wrapper {
     height: auto;
   }

@@ -30,17 +30,9 @@ export default function SystemStory() {
     const track = trackRef.current;
     if (!section || !track) return;
 
-    if (window.innerWidth < 768) {
-      // On mobile, bypass horizontal scroll logic and let CSS vertical stacking take over natively
-      section.style.setProperty('--scroll-progress', '0');
-      section.style.setProperty('--scroll-pulse', '0');
-      section.style.setProperty('--scroll-exit', '0');
-      section.style.setProperty('--entry-progress', '1');
-      return;
-    }
-
     const w = window.innerWidth;
-    const pw = w * 0.66;
+    const isMobile = w < 768;
+    const pw = isMobile ? w * 0.85 : w * 0.66;
 
     // Track positions so first panel starts centered, last panel ends centered
     const trackStart = w / 2 - pw / 2;
@@ -56,7 +48,7 @@ export default function SystemStory() {
 
     const tick = () => {
       const rect = section.getBoundingClientRect();
-      const scrollRange = section.offsetHeight - w;
+      const scrollRange = section.offsetHeight - window.innerHeight;
       const raw = Math.min(Math.max(-rect.top / scrollRange, 0), 1);
 
       smoothProgress += (raw - smoothProgress) * lerp;
