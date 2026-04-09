@@ -42,13 +42,13 @@ export default function DataFlowBackground() {
       {/* Extremely faint dark radial gradient to give depth, preventing total flatness */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(25,25,30,0.06)_0%,transparent_100%)]" />
 
-      {/* The light strands growing from the right on ENTRY, then moving left on HORIZONTAL SCROLL */}
+      {/* The light strands growing on entry, with TRUE SPIRAL motion on scroll */}
       <div 
-        className="absolute inset-0 border-0 will-change-transform"
+        className="absolute top-1/2 left-1/2 w-[250vw] h-[250vw] -translate-x-1/2 -translate-y-1/2 border-0 will-change-transform pointer-events-none"
         style={{ 
-          transform: 'translateX(calc(var(--scroll-progress, 0) * -30vw - var(--scroll-exit, 0) * 150vw)) translateY(calc(var(--scroll-pulse, 0) * 8vh)) rotate(calc(var(--scroll-progress, 0) * 5deg)) scale(1.1)',
+          transform: 'translate(-50%, -50%) perspective(150vw) rotateZ(calc(var(--scroll-progress, 0) * -110deg)) rotateX(calc(var(--scroll-progress, 0) * 15deg)) scale(calc(1 + (var(--scroll-progress, 0) * 0.3)))',
           opacity: 'calc(0.6 + (var(--scroll-pulse, 0) * 0.4))',
-          WebkitMaskImage: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,1) 80%, rgba(0,0,0,0.3) 100%)',
+          WebkitMaskImage: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,1) 25%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,1) 75%, rgba(0,0,0,0.2) 100%)',
           WebkitMaskSize: '30vw 100%',
           WebkitMaskPosition: 'calc(var(--scroll-progress, 0) * 300vw) 0',
           transition: 'transform 0.1s linear, opacity 0.1s linear'
@@ -60,8 +60,8 @@ export default function DataFlowBackground() {
             className="absolute right-0 h-[1px]"
             style={{
               top: `${strand.top}%`,
-              // Growth magic: clamp width mapped to vertical entry, they are already drawn by Panel 01!
-              width: `clamp(0vw, calc((var(--entry-progress, 0) * 140vw) - ${strand.stagger}vw), ${strand.width}vw)`,
+              // Clamp width ensuring they reach far enough to span the oversized rotated container
+              width: `clamp(0vw, calc((var(--entry-progress, 0) * 200vw) - ${strand.stagger}vw), calc(${strand.width}vw + 50vw))`,
               opacity: strand.opacity,
               background: `linear-gradient(-90deg, transparent 0%, ${strand.colorToken} 50%, transparent 100%)`,
               willChange: 'width',
@@ -71,13 +71,13 @@ export default function DataFlowBackground() {
         ))}
       </div>
 
-      {/* Subtle curved SVG path data flows overlay */}
+      {/* Subtle curved SVG path data flows overlay mapped inside spiral logic */}
       <svg 
-        className="absolute inset-0 w-full h-full opacity-[0.14] will-change-transform" 
+        className="absolute top-1/2 left-1/2 w-[250vw] h-[250vw] opacity-[0.14] will-change-transform" 
         style={{ 
-          transform: 'translateX(calc(var(--scroll-progress, 0) * -20vw - var(--scroll-exit, 0) * 150vw)) translateY(calc(var(--scroll-pulse, 0) * -4vh)) rotate(calc(var(--scroll-progress, 0) * -2deg))',
+          transform: 'translate(-50%, -50%) perspective(150vw) rotateZ(calc(var(--scroll-progress, 0) * -130deg)) rotateY(calc(var(--scroll-progress, 0) * 10deg)) scale(1)',
           opacity: 'calc(0.7 + (var(--scroll-pulse, 0) * 0.3))',
-          WebkitMaskImage: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,1) 30%, rgba(0,0,0,0.5) 100%)',
+          WebkitMaskImage: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,1) 30%, rgba(0,0,0,0.3) 100%)',
           WebkitMaskSize: '40vw 100%',
           WebkitMaskPosition: 'calc(var(--scroll-progress, 0) * 150vw) 0',
           transition: 'transform 0.1s linear, opacity 0.1s linear'
