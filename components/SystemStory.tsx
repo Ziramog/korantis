@@ -56,8 +56,12 @@ export default function SystemStory() {
       const tx = trackStart - maxScroll * smoothProgress;
       track.style.transform = `translateX(${tx}px)`;
 
-      // Update custom property for background parallax depth
+      // Update custom property for background parallax depth and spiral
       section.style.setProperty('--scroll-progress', smoothProgress.toString());
+      
+      // Calculate a fading "pulse" wave that peaks as captions center
+      const pulse = Math.sin(smoothProgress * Math.PI * (count - 1));
+      section.style.setProperty('--scroll-pulse', pulse.toString());
 
       // Viewport center in track coordinates
       const vpCenter = -tx + w / 2;

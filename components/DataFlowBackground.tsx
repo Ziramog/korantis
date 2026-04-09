@@ -43,10 +43,14 @@ export default function DataFlowBackground() {
       {/* Extremely faint dark radial gradient to give depth, preventing total flatness */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(25,25,30,0.06)_0%,transparent_100%)]" />
 
-      {/* The light strands moving horizontally with parallax depth */}
+      {/* The light strands moving horizontally with strong parallax and fading pulse movement */}
       <div 
         className="absolute inset-0 will-change-transform"
-        style={{ transform: 'translateX(calc(var(--scroll-progress, 0) * -15vw))' }}
+        style={{ 
+          transform: 'translateX(calc(var(--scroll-progress, 0) * -120vw)) translateY(calc(var(--scroll-pulse, 0) * 8vh)) rotate(calc(var(--scroll-progress, 0) * 8deg)) scale(1.3)',
+          opacity: 'calc(0.6 + (var(--scroll-pulse, 0) * 0.4))',
+          transition: 'transform 0.1s linear, opacity 0.1s linear'
+        }}
       >
         {strands.map((strand, i) => (
           <div
@@ -68,7 +72,11 @@ export default function DataFlowBackground() {
       {/* Subtle curved SVG path data flows overlay representing organic/flexible flow */}
       <svg 
         className="absolute inset-0 w-full h-full opacity-[0.14] will-change-transform" 
-        style={{ transform: 'translateX(calc(var(--scroll-progress, 0) * -8vw))' }}
+        style={{ 
+          transform: 'translateX(calc(var(--scroll-progress, 0) * -70vw)) translateY(calc(var(--scroll-pulse, 0) * -4vh)) rotate(calc(var(--scroll-progress, 0) * -4deg)) scale(1.1)',
+          opacity: 'calc(0.7 + (var(--scroll-pulse, 0) * 0.3))',
+          transition: 'transform 0.1s linear, opacity 0.1s linear'
+        }}
         preserveAspectRatio="none"
       >
         <style>
