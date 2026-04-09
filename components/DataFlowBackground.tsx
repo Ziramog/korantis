@@ -23,7 +23,7 @@ export default function DataFlowBackground() {
       const duration = 25 + ((i * 17) % 40); // 25s to 65s for slow, calm movement
       const delay = -((i * 23) % 60); // Negative delay to start mid-animation
       const width = 20 + ((i * 7) % 60); // 20vw to 80vw length
-      const opacity = 0.03 + (((i * 3) % 10) / 100); // 0.03 to 0.12 extremely subtle
+      const opacity = 0.08 + (((i * 3) % 15) / 100); // 0.08 to 0.22 - bumped for better visibility
       const colorToken = i % 3 === 0 ? '#a5b4fc' : i % 4 === 0 ? '#c4b5fd' : '#ffffff';
 
       return { top, duration, delay, width, opacity, colorToken };
@@ -63,7 +63,7 @@ export default function DataFlowBackground() {
       </div>
 
       {/* Subtle curved SVG path data flows overlay representing organic/flexible flow */}
-      <svg className="absolute inset-0 w-full h-full opacity-[0.05]" preserveAspectRatio="none">
+      <svg className="absolute inset-0 w-full h-full opacity-[0.14]" preserveAspectRatio="none">
         <style>
           {`
             .flow-line {

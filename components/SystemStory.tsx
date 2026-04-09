@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from 'react';
 import { useLang } from '@/lib/i18n';
+import DataFlowBackground from './DataFlowBackground';
 import '@/public/css/story.css';
 
 const PANELS = {
@@ -91,6 +92,7 @@ export default function SystemStory() {
   return (
     <section ref={sectionRef} className="story-wrapper" aria-label="How systems scale">
       <div className="story-sticky">
+        <DataFlowBackground />
         <div ref={trackRef} className="story-track">
           {panels.map((panel) => (
             <Panel key={panel.index} {...panel} />
